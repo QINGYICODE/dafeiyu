@@ -1,0 +1,40 @@
+/* Shared illustration assets; the companion's mood stays in the live text badge. */
+.companion-art{display:block;user-select:none;max-width:100%;object-fit:contain}
+.companion-portrait{width:100%;height:100%;object-fit:cover;object-position:center}
+.companion-full{width:100%;height:auto;filter:drop-shadow(0 12px 14px #334c8420)}
+.brand{gap:10px;font-size:23px;letter-spacing:2px;padding-left:7px;padding-right:0}
+.brand-mark{width:43px;height:43px;flex-shrink:0;overflow:hidden;background:linear-gradient(145deg,#edf1ff,#e5f4fd)}
+.brand-en{letter-spacing:2.6px;font-size:8px}
+.hero-whale{top:auto;bottom:32px;right:6px;width:47%;height:285px;display:flex;align-items:flex-end;justify-content:center}
+.hero-whale>.companion-full{width:100%;height:100%;object-fit:contain;position:relative;z-index:2;animation:companionFloat 6s ease-in-out infinite}
+.hero-copy{max-width:55%}
+.hero-copy h2{font-size:31px;line-height:1.5;letter-spacing:0}
+.hero-copy h2 br{display:none}
+.whale-thought{z-index:3;top:2px;right:3px;max-width:195px}
+.hero-ripple{bottom:-5px}
+.mini-whale,.chat-avatar,.message-avatar{background:linear-gradient(145deg,#ecf0ff,#e7f5fc)}
+.mini-whale>.companion-portrait,.chat-avatar>.companion-portrait,.message-avatar>.companion-portrait{width:100%;height:100%}
+.chat-welcome>.companion-full{width:180px;height:215px;object-fit:contain;margin:0 auto 12px}
+.boot>.companion-full{width:170px;height:210px;margin:0 auto}
+@keyframes companionFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(min-width:1440px){.hero-whale{right:16px;width:43%;height:290px}.hero-copy h2{font-size:34px}}
+@media(max-width:1000px) and (min-width:721px){.hero-copy h2{font-size:28px}.hero-whale{width:45%;right:0}}
+@media(max-width:720px){
+ .brand{font-size:23px;gap:10px}
+ .hero-copy{max-width:58%}
+ .hero-copy h2{font-size:27px;line-height:1.5}
+ .hero-copy h2 br{display:block}
+ .hero-whale{top:auto;right:2px;bottom:31px;width:45%;height:230px}
+ .hero-whale>.companion-full{width:100%;height:100%;margin:0}
+ .whale-thought{top:0;right:2px;max-width:145px;font-size:7px;line-height:1.6}
+ .hero-ripple{width:75%;left:12%;bottom:-1px}
+ .chat-welcome>.companion-full{width:150px;height:180px;margin-bottom:10px}
+ .chat-room-heading h1{gap:7px;letter-spacing:0;font-size:15px}
+}
+@media(max-width:380px){
+ .hero-copy h2{font-size:25px}
+ .hero-whale{height:210px;right:0;width:44%;bottom:32px}
+ .whale-thought{top:0;max-width:120px;font-size:6px}
+ .chat-room-heading h1{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){.hero-whale>.companion-full{animation:none}}

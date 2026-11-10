@@ -1,0 +1,26 @@
+# Machine-specific runtimes, SDKs, credentials and signing material
+.android-tools/
+.gradle/
+**/local.properties
+**/.idea/
+**/build/
+*.jks
+*.keystore
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+**/__pycache__/
+*.pyc
+
+# Private validation output and user-supplied source recordings
+/artifacts/
+/releases/
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*:Zone.Identifier
+/大肥鱼.png
+.DS_Store

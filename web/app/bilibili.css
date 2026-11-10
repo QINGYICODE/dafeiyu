@@ -1,0 +1,63 @@
+.bili-account-card { margin-bottom: 24px; background: linear-gradient(135deg, #fff 60%, #f7fbfd); }
+.bili-account-mark { width: 42px; height: 42px; display: grid; place-items: center; background: #fdf0f4; border-radius: 13px; flex-shrink: 0; }
+.bili-account-mark .platform-logo { background: none; width: 32px; height: 32px; }
+.bili-account-mark svg { width: 26px; height: 26px; }
+.bili-status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #9a8f80; background: #faf5ed; border: 1px solid #f2eadf; border-radius: 8px; padding: 7px 9px; margin-left: auto; white-space: nowrap; }
+.bili-status i { width: 5px; height: 5px; background: currentColor; border-radius: 50%; }
+.bili-status.connected { color: #739989; background: #f0f7f2; border-color: #e1eee5; }
+.bili-profile { display: flex; align-items: center; gap: 14px; margin: 0 0 22px; padding: 16px; border: 1px solid #e4edf1; border-radius: 14px; background: white; }
+.bili-profile > img, .bili-profile-fallback { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #fdf0f4; flex-shrink: 0; display: grid; place-items: center; }
+.bili-profile > div { flex: 1; min-width: 0; }
+.bili-profile strong { font-size: 15px; font-weight: 500; display: block; overflow-wrap: anywhere; }
+.bili-profile > div > span { font-size: 11px; color: #8b9da8; display: block; margin-top: 6px; line-height: 1.8; }
+.bili-connect-copy { display: flex; align-items: flex-start; gap: 15px; padding: 14px 0 22px; color: #8aacbf; }
+.bili-connect-copy > svg { margin-top: 3px; }
+.bili-connect-copy p { font-size: 13px; color: #728b9b; }
+.bili-connect-copy p > span { display: block; color: #9babb5; font-size: 11px; margin-top: 5px; }
+.bili-preferences .setting-toggle-row:last-child { border-bottom: 0; margin-bottom: 2px; }
+.bili-inline-note { padding: 10px 12px; background: #f3f8fb; border: 1px solid #e6eff4; border-radius: 10px; color: #7b93a3; font-size: 12px; margin-bottom: 15px; }
+.bili-account-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.bili-account-actions .danger { margin-left: auto; }
+.bili-boundary { display: flex; align-items: flex-start; gap: 7px; padding-top: 16px; margin-top: 18px; border-top: 1px solid #e9eff2; color: #94a5ae; }
+.bili-boundary svg { margin-top: 3px; }
+.bili-boundary p { font-size: 11px; line-height: 1.8; }
+.bili-login-content { text-align: center; }
+.bili-login-content > p:first-child { font-size: 14px; color: #738c9c; }
+.bili-qr { position: relative; margin: 18px auto 14px; width: min(280px, 100%); aspect-ratio: 1; border: 1px solid #e6edf1; padding: 10px; border-radius: 17px; background: #fff; }
+.bili-qr img { width: 100%; height: 100%; display: block; border-radius: 8px; }
+.bili-qr.expired img { filter: blur(5px); opacity: .22; }
+.bili-qr > div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: #637c8c; }
+.bili-qr-loading { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #8baaba; font-size: 13px; }
+.bili-scan-status { font-size: 13px; color: #75978a; min-height: 30px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.bili-pulse { display: inline-block; height: 6px; width: 6px; background: #88b4a0; border-radius: 50%; box-shadow: 0 0 0 4px #eff6f1; }
+.bili-qr-actions { display: flex; justify-content: center; align-items: center; gap: 24px; margin: 5px 0; }
+.bili-login-help { font-size: 12px; line-height: 1.9; color: #8c9faa; margin: 12px 0 0; }
+.bili-login-content .helper-text { justify-content: center; text-align: left; font-size: 11px !important; }
+.bili-login-error { background: #fbf2eb; border: 1px solid #f0e4d9; padding: 12px 14px; color: #ad8873; font-size: 13px; line-height: 1.8; border-radius: 10px; margin: 14px 0; }
+.bili-feed-loading { display: flex; align-items: center; gap: 12px; justify-content: center; min-height: 130px; color: #87a2b3; font-size: 13px; }
+.bili-feed-list { display: grid; gap: 12px; }
+.bili-feed-list > a { position: relative; display: block; padding: 15px 35px 15px 15px; border: 1px solid #e7edf1; background: #f8fbfc; border-radius: 12px; }
+.bili-feed-list > a > span { font-size: 11px; color: #8aa0ae; display: block; margin-bottom: 6px; }
+.bili-feed-list strong { display: block; font-size: 14px; font-weight: 500; line-height: 1.8; color: #5b788b; overflow-wrap: anywhere; }
+.bili-feed-list p { color: #8ba0ad; font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 7px; }
+.bili-feed-list svg { position: absolute; right: 13px; top: 20px; color: #99afbd; }
+.bili-empty-feed { font-size: 14px; text-align: center; padding: 28px 12px; color: #8b9faa; }
+@media (max-width: 720px) {
+  .bili-account-card { margin-bottom: 20px; }
+  .bili-status { font-size: 11px; margin-left: 44px; }
+  .bili-profile { padding: 12px; gap: 10px; }
+  .bili-profile strong { font-size: 16px; }
+  .bili-profile > div > span { font-size: 11px; }
+  .bili-connect-copy { gap: 12px; padding-top: 5px; }
+  .bili-connect-copy p { font-size: 13px; }
+  .bili-connect-copy p > span { font-size: 12px; }
+  .bili-account-actions { gap: 8px; }
+  .bili-account-actions > .button { flex: 1 1 170px; }
+  .bili-account-actions > .text-button { font-size: 12px; }
+  .bili-account-actions .danger { margin-left: 0; }
+  .bili-boundary p { font-size: 11px; }
+  .bili-qr { width: min(260px, 100%); padding: 7px; }
+  .bili-login-content > p:first-child { font-size: 13px; }
+  .bili-login-help { font-size: 12px; }
+  .bili-qr-actions { gap: 18px; }
+}

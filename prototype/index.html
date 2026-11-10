@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <title>青屿 · AI 伙伴交互原型</title>
+  <style>
+    :root { --ink:#243c4b; --muted:#758893; --blue:#386f8c; --sea:#4b8ba5; --line:#e4eaec; --paper:#fafbf9; --orange:#cf845a; --radius:24px; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#eaf0ee; color:var(--ink); font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { cursor:not-allowed; opacity:.55; }
+    button,a,input,textarea,select { -webkit-tap-highlight-color:transparent; }
+    :focus-visible { outline:3px solid #d49d68; outline-offset:3px; }
+    button { color:inherit; }
+    button svg { pointer-events:none; }
+    svg.icon { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+    .stage { min-height:100svh; display:flex; align-items:center; justify-content:center; gap:76px; padding:36px; }
+    .intro { width:270px; }
+    .eyebrow { color:var(--sea); font-size:11px; letter-spacing:3px; font-weight:700; }
+    .intro h1 { font:44px/1.4 Georgia,"Songti SC",serif; font-weight:400; letter-spacing:6px; margin:17px 0; }
+    .intro p { color:var(--muted); line-height:2; }
+    .intro .divider { width:36px; height:2px; background:#9bb7bb; margin:28px 0; }
+    .intro small { color:var(--muted); display:block; line-height:1.9; }
+    .device { position:relative; width:410px; height:852px; max-height:calc(100svh - 72px); min-height:590px; background:var(--paper); border:7px solid #fff; border-radius:44px; box-shadow:0 28px 90px #34574b16,0 0 0 1px #dbe4df; overflow:hidden; display:flex; flex-direction:column; }
+    .status { height:35px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:5px 24px 0; font-size:11px; font-weight:600; }
+    .status-right { display:flex; align-items:center; gap:6px; }
+    .battery { width:19px; height:9px; border:1px solid currentColor; padding:1px; border-radius:2px; }
+    .battery:after { content:""; display:block; background:currentColor; height:100%; width:80%; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 22px 12px; flex-shrink:0; border-bottom:1px solid transparent; }
+    .brand { display:flex; align-items:center; gap:9px; font-size:18px; letter-spacing:2px; }
+    .brand svg { color:var(--sea); }
+    .pill { border:1px solid #dce7e8; background:#f0f6f5; border-radius:99px; padding:4px 10px; font-size:10px; color:#63818c; letter-spacing:1px; }
+    main { flex:1; min-height:0; display:flex; flex-direction:column; }
+    .page { display:none; overflow-y:auto; padding:8px 22px 24px; flex:1; scrollbar-width:thin; scrollbar-color:#cddcdb transparent; }
+    .page.active { display:block; }
+    .page-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:8px 0 20px; }
+    h2 { margin:0; font-size:23px; font-weight:550; letter-spacing:1px; }
+    h3 { font-size:14px; font-weight:600; margin:0; }
+    p { margin:0; }
+    .sub { color:var(--muted); font-size:12px; }
+    .small { font-size:11px; }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; margin:24px 0 12px; }
+    .section-heading span { color:var(--muted); font-size:11px; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px; }
+    .hero { position:relative; background:linear-gradient(150deg,#edf6f5,#e1eff0 65%,#d4e7eb); border-radius:28px; min-height:300px; overflow:hidden; text-align:center; padding:18px 12px 20px; }
+    .hero:after { content:""; position:absolute; width:350px; height:70px; background:#ffffff42; border-radius:50%; left:-12px; bottom:-45px; pointer-events:none; }
+    .hero-tag { display:flex; justify-content:space-between; align-items:center; padding:0 5px; font-size:10px; color:#6c9299; letter-spacing:1px; }
+    .hero .mood { background:#ffffff8c; padding:3px 9px; border-radius:99px; letter-spacing:0; }
+    .whale { width:235px; height:155px; overflow:visible; }
+    .float { animation:bob 4s ease-in-out infinite; transform-origin:center; }
+    @keyframes bob { 0%,100% { transform:translateY(0) rotate(-2deg); } 50% { transform:translateY(-7px) rotate(2deg); } }
+    .hero h2 { font-size:20px; margin:0 0 6px; }
+    .hero p { font-size:12px; color:#698892; }
+    .greeting { padding:9px 0 20px; }
+    .greeting .sub { margin-bottom:4px; }
+    .greeting h2 { font-size:25px; }
+    .primary { border:0; background:var(--blue); color:#fff; border-radius:16px; min-height:48px; padding:10px 17px; font-weight:500; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .full { width:100%; }
+    .hero + .primary { margin-top:15px; }
+    .soft { border:1px solid var(--line); background:#fff; border-radius:15px; min-height:44px; padding:9px 14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .link { border:0; background:none; color:var(--blue); min-height:44px; padding:6px; font-size:12px; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:14px; }
+    .stat { background:#fff; padding:14px 16px; border:1px solid var(--line); border-radius:18px; }
+    .stat strong { display:block; font:23px Georgia,serif; color:var(--blue); margin-bottom:3px; }
+    .stat strong small { font:11px sans-serif; margin-left:4px; }
+    .stat span { font-size:11px; color:var(--muted); }
+    .diary { text-align:left; width:100%; }
+    .diary time { font-size:10px; color:var(--orange); display:block; margin-bottom:6px; letter-spacing:1px; }
+    .diary p { font-size:12px; color:var(--muted); margin-top:6px; }
+    .nav { border-top:1px solid var(--line); padding:7px 5px 10px; background:#fdfefcf2; display:flex; justify-content:space-around; flex-shrink:0; }
+    .nav button { width:20%; min-height:52px; border:0; background:none; color:#8b999e; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; }
+    .nav button[aria-current="page"] { color:var(--blue); }
+    .nav button[aria-current="page"] .nav-icon { background:#e5f0f0; }
+    .nav-icon { display:flex; align-items:center; justify-content:center; width:45px; height:28px; border-radius:12px; }
+    .chat-page.active { display:flex; flex-direction:column; padding-bottom:12px; overflow:hidden; }
+    .chat-head { display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--line); padding:4px 0 15px; }
+    .avatar { width:42px; height:42px; background:#e5eff0; border-radius:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .avatar svg { width:39px; height:30px; }
+    .chat-head h2 { font-size:17px; }
+    .chat-head .link { margin-left:auto; }
+    .messages { flex:1; min-height:0; overflow-y:auto; padding:17px 0; scrollbar-width:thin; }
+    .date-label { text-align:center; color:#93a1a6; font-size:10px; margin-bottom:20px; }
+    .message { display:flex; flex-direction:column; align-items:flex-start; margin-bottom:17px; }
+    .message.user { align-items:flex-end; }
+    .bubble { background:#fff; border:1px solid var(--line); padding:12px 14px; max-width:88%; border-radius:17px 17px 17px 4px; font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .user .bubble { background:#e1eef1; border-color:#dbe8ed; border-radius:17px 17px 4px 17px; }
+    .message-meta { display:flex; gap:10px; margin:4px 5px 0; align-items:center; }
+    .message-meta button { background:none; border:0; color:var(--muted); font-size:10px; min-height:30px; padding:2px 4px; }
+    .message-meta span { color:var(--muted); font-size:10px; }
+    .chat-note { font-size:10px; color:#91a0a5; text-align:center; margin-top:8px; }
+    .composer { display:flex; align-items:flex-end; gap:8px; background:#fff; border:1px solid #dce6e7; border-radius:20px; padding:7px; flex-shrink:0; }
+    .composer textarea { width:100%; border:0; resize:none; min-height:40px; max-height:90px; padding:10px 7px; background:none; outline:none; font-size:12px; }
+    .send { background:var(--blue); border:0; color:#fff; width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .search { display:flex; align-items:center; gap:9px; background:#edf2f1; border-radius:14px; padding:0 12px; margin-bottom:15px; color:#8b9b9f; }
+    .search input { width:100%; border:0; background:none; padding:12px 0; outline:none; font-size:12px; }
+    .memory-card { margin-bottom:12px; border-radius:19px; padding:15px 16px; }
+    .memory-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+    .tag { background:#eaf3ef; color:#688c78; padding:3px 8px; border-radius:7px; font-size:10px; }
+    .tag.event { background:#faf0e6; color:#ba916a; }
+    .tag.agreement { background:#eeedf7; color:#8b83a2; }
+    .memory-card p { font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .memory-footer { display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:8px; }
+    .memory-footer .link { min-height:30px; font-size:10px; }
+    .memory-footer span { color:var(--muted); font-size:10px; }
+    .empty { color:var(--muted); text-align:center; padding:35px 15px; }
+    .note { background:#edf4f1; color:#6f897e; border-radius:13px; padding:12px 14px; font-size:11px; margin-bottom:16px; }
+    .character-preview { background:#edf4f3; border-radius:24px; text-align:center; padding:5px 0; margin-bottom:20px; }
+    .character-preview .whale { height:125px; width:185px; }
+    .life-card { margin-bottom:14px; border-radius:20px; }
+    .life-card h3 { margin-bottom:8px; }
+    .life-card p { font-size:12px; color:var(--muted); }
+    .life-card .life-value { color:var(--ink); font-size:15px; margin-bottom:5px; }
+    .interests { display:flex; gap:7px; flex-wrap:wrap; margin:12px 0 8px; }
+    .interest { border-radius:99px; padding:5px 10px; background:#eaf3ef; color:#638576; font-size:11px; }
+    .life-source { margin-top:9px; font-size:10px !important; }
+    .life-toggle { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 0; }
+    .switch { border:0; border-radius:99px; width:44px; height:26px; min-height:44px; background:transparent; padding:9px 0; position:relative; flex-shrink:0; }
+    .switch::before { content:""; display:block; width:44px; height:26px; border-radius:99px; background:#dbe3e1; position:absolute; top:9px; }
+    .switch::after { content:""; width:20px; height:20px; border-radius:50%; background:white; position:absolute; top:12px; left:3px; transition:transform .15s; }
+    .switch[aria-checked="true"]::before { background:var(--sea); }
+    .switch[aria-checked="true"]::after { transform:translateX(18px); }
+    .activity { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
+    .activity a { color:var(--blue); font-size:11px; display:inline-flex; align-items:center; min-height:44px; overflow-wrap:anywhere; }
+    .activity time { font-size:10px; color:var(--muted); }
+    .activity h4 { font-size:13px; margin:4px 0; }
+    .typing-indicator { color:var(--muted); font-size:12px; min-height:26px; margin-bottom:8px; }
+    .typing-indicator:empty { display:none; }
+    .field { display:block; margin:0 0 16px; font-size:12px; font-weight:500; }
+    .field input,.field textarea,.field select { display:block; width:100%; margin-top:7px; border:1px solid #dfe7e6; border-radius:12px; padding:12px; background:#fff; color:var(--ink); font-size:12px; min-height:44px; }
+    .field textarea { resize:vertical; min-height:90px; }
+    .field small { display:block; font-weight:400; color:var(--muted); font-size:10px; margin-top:5px; overflow-wrap:anywhere; }
+    .field input:disabled { background:#edf1ef; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .settings-card { border-radius:20px; margin-bottom:15px; }
+    .settings-card .section-heading { margin:0 0 15px; }
+    .settings-card .field:last-of-type { margin-bottom:12px; }
+    .setting-row { display:flex; align-items:center; justify-content:space-between; min-height:44px; gap:12px; font-size:12px; }
+    .setting-row + .setting-row { border-top:1px solid var(--line); }
+    .setting-row span:last-child { font-size:10px; color:var(--muted); }
+    .danger { color:#b77767; }
+    .prototype-note { color:var(--muted); font-size:10px; text-align:center; margin:18px 0 3px; }
+    dialog { width:calc(100% - 44px); max-width:360px; border:1px solid var(--line); padding:24px; border-radius:25px; color:var(--ink); box-shadow:0 15px 60px #193e4422; }
+    dialog::backdrop { background:#163d4760; backdrop-filter:blur(3px); }
+    dialog h2 { font-size:20px; margin-bottom:18px; }
+    .dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+    .toast { position:absolute; bottom:88px; left:20px; right:20px; z-index:5; background:#294854; color:#fff; padding:12px 16px; border-radius:14px; font-size:12px; box-shadow:0 4px 15px #193e4420; }
+    .toast:empty { display:none; }
+    .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+    [hidden] { display:none !important; }
+    @media(max-width:800px) { .intro { display:none; } .stage { padding:20px; } .device { max-height:calc(100svh - 40px); } }
+    @media(max-width:480px) { body { background:var(--paper); } .stage { padding:0; min-height:100svh; } .device { border:0; border-radius:0; width:100%; height:100svh; min-height:0; max-height:none; box-shadow:none; } .status { display:none; } .topbar { padding-top:max(16px,env(safe-area-inset-top)); } .nav { padding-bottom:max(10px,env(safe-area-inset-bottom)); } }
+    @media(prefers-reduced-motion:reduce) { .float { animation:none; } }
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute"><defs>
+    <symbol id="whale" viewBox="0 0 260 170">
+      <ellipse cx="125" cy="150" rx="70" ry="7" fill="#517f8b" opacity=".1"/>
+      <g class="float">
+        <path d="M204 83 Q221 67 232 54 Q240 74 232 90 Q248 85 254 88 Q246 112 217 113 L190 117Z" fill="#5797ae"/>
+        <path d="M37 90 C37 42 79 30 126 34 C175 36 210 61 211 100 C214 130 176 145 123 144 C68 144 34 129 37 90Z" fill="#72a9bd"/>
+        <path d="M40 105 C70 120 110 112 141 115 C172 119 197 111 210 101 C210 132 172 145 123 144 C78 145 43 134 40 105Z" fill="#d5e8e8"/>
+        <path d="M122 111 C131 120 145 131 153 125 C159 118 149 106 144 101" fill="#518da4"/>
+        <path d="M67 53 Q90 40 111 43" stroke="#a3ccd6" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="75" cy="91" rx="4" ry="5" fill="#294f64"/>
+        <ellipse cx="148" cy="88" rx="4" ry="5" fill="#294f64"/>
+        <path d="M98 99 Q106 107 114 98" stroke="#315c6c" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="62" cy="103" rx="10" ry="5" fill="#e7b6a2" opacity=".65"/>
+        <ellipse cx="161" cy="100" rx="10" ry="5" fill="#e7b6a2" opacity=".65"/>
+        <path d="M111 33 Q102 21 109 13 Q118 20 118 30 M120 31 Q122 15 134 17 Q135 29 122 34" stroke="#7eb0bf" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </g>
+      <circle cx="30" cy="55" r="5" fill="none" stroke="#b4d2d6" stroke-width="2"/>
+      <circle cx="217" cy="29" r="8" fill="none" stroke="#b4d2d6" stroke-width="2"/>
+      <circle cx="235" cy="15" r="3" fill="#b4d2d6"/>
+    </symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-1 1v-9.5A8.5 8.5 0 0 1 11.5 3h1A8.5 8.5 0 0 1 21 11.5Z"/><path d="M8 11h.01M12 11h.01M16 11h.01" stroke-width="3"/></symbol>
+    <symbol id="i-memory" viewBox="0 0 24 24"><path d="M4 4h6a2 2 0 0 1 2 2v15a4 4 0 0 0-4-2H3V4Zm16 0h-6a2 2 0 0 0-2 2v15a4 4 0 0 1 4-2h5V4Z"/></symbol>
+    <symbol id="i-character" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3h6l1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m12 19 0-14m-6 6 6-6 6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  </defs></svg>
+  <div class="stage">
+    <aside class="intro">
+      <span class="eyebrow">A LITTLE ISLAND, JUST FOR YOU</span>
+      <h1>青屿</h1>
+      <p>在忙碌的日常里，<br>留一小片海，<br>和一个记得你的伙伴。</p>
+      <div class="divider"></div>
+      <small>手机 App · 五页交互原型<br>回复与上网活动均为本地演示。<br>试试说「以后叫我小林」，<br>再去看看小屿自己的生活。</small>
+    </aside>
+    <div class="device">
+      <div class="status" aria-hidden="true"><span>9:41</span><div class="status-right"><span>▂▄▆</span><span>⌁</span><span class="battery"></span></div></div>
+      <header class="topbar"><div class="brand"><svg class="icon"><use href="#i-chat"/></svg>青屿</div><span class="pill">交互原型 · 演示</span></header>
+      <main>
+        <section id="page-home" class="page active" aria-labelledby="home-title">
+          <div class="greeting"><p class="sub">一小片海，一个老朋友</p><h2 id="home-title">今天，也想听你说。</h2></div>
+          <div class="hero">
+            <div class="hero-tag"><span>YOUR LITTLE COMPANION</span><span class="mood" id="home-mood">● 平静 · 演示</span></div>
+            <svg class="whale" role="img" aria-label="一只圆滚滚的蓝色小鲸鱼"><use href="#whale"/></svg>
+            <h2><span data-character-name>小屿</span>在这里</h2><p>不用找话题，随便说点什么就好。</p>
+          </div>
+          <button class="primary full" data-go="chat">聊一会儿 <svg class="icon"><use href="#i-arrow"/></svg></button>
+          <div class="stats"><div class="stat"><strong>03<small>天</small></strong><span>相处时光 · 示例</span></div><button class="stat" style="text-align:left" data-go="memory"><strong id="memory-count">3<small>件</small></strong><span>我记得的小事</span></button></div>
+          <div class="section-heading"><h3>海边日记</h3><span>一点点日常，慢慢收藏</span></div>
+          <button class="card diary" id="open-diary"><time>示例日记 / 一个平常的傍晚</time><h3>把普通的一天，过得柔软一点。</h3><p>哪怕只是散了一小会儿步，也值得记下来。</p></button>
+          <button class="soft full" style="margin-top:12px" data-go="character">去看看小屿的生活 <svg class="icon"><use href="#i-arrow"/></svg></button>
+          <button class="link full" id="home-add-memory">＋ 记下一件事</button>
+        </section>
+        <section id="page-chat" class="page chat-page" aria-labelledby="chat-title">
+          <div class="chat-head"><div class="avatar"><svg aria-hidden="true"><use href="#whale"/></svg></div><div><h2 id="chat-title" data-character-name>小屿</h2><p class="sub small">本地演示 · 固定示例回复</p></div><button class="link" data-go="settings">模型设置</button></div>
+          <div class="messages" id="messages" role="log" aria-label="演示聊天记录" aria-live="polite"></div>
+          <div class="typing-indicator" id="typing-indicator" role="status" aria-live="polite"></div>
+          <form class="composer" id="chat-form"><label for="chat-input" class="sr-only">给伙伴发送消息</label><textarea id="chat-input" rows="1" maxlength="2000" placeholder="今天有什么想说的？"></textarea><button class="send" id="send-button" aria-label="发送演示消息" type="submit"><svg class="icon"><use href="#i-send"/></svg></button></form>
+          <p class="chat-note">本地演示 · 回复整条发送 · Shift + Enter 换行</p>
+        </section>
+        <section id="page-memory" class="page" aria-labelledby="memory-title">
+          <div class="page-title"><div><h2 id="memory-title">记得的小事</h2><p class="sub">关于你，我想慢慢了解。</p></div><button class="soft" id="add-memory" aria-label="新增记忆"><svg class="icon"><use href="#i-plus"/></svg></button></div>
+          <div class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><label class="sr-only" for="memory-search">搜索记忆</label><input id="memory-search" type="search" placeholder="找一找，那件小事…"></div>
+          <div class="note">这里的记忆由你决定。可以随时修改，也可以让它忘记。</div><div id="memory-list"></div>
+        </section>
+        <section id="page-character" class="page" aria-labelledby="character-title">
+          <div class="page-title"><div><h2 id="character-title">小屿的生活</h2><p class="sub">有自己的小心情，也有想探索的世界。</p></div></div>
+          <div class="character-preview"><svg class="whale" role="img" aria-label="蓝色小鲸鱼角色形象"><use href="#whale"/></svg></div>
+          <article class="card life-card"><h3>我就是这样的小屿</h3><p>温柔，好奇，有一点俏皮。喜欢认真听你说话，也会保留自己的想法。</p><p class="life-source">性格固定，在相处中慢慢了解彼此。</p></article>
+          <article class="card life-card"><h3>我怎么称呼你</h3><p class="life-value" id="learned-name">还不知道，聊着聊着认识你。</p><p id="name-source">你可以在聊天里告诉我希望被怎么称呼。</p></article>
+          <article class="card life-card"><h3>此刻的心情 · 演示</h3><p class="life-value" id="life-mood">平静</p><p id="mood-reason">听着海风，等一个想聊的话题。</p></article>
+          <article class="card life-card"><h3>最近感兴趣的事 · 演示</h3><div class="interests" id="interest-list"></div><p>从相处和见闻中积累，不用替我填写。</p></article>
+          <article class="card life-card"><h3>出去逛逛</h3><p>沿着自己的兴趣，找一点新鲜事，再带回来和你分享。</p><div class="life-toggle"><span class="sub">自主冲浪演示</span><button id="surf-toggle" class="switch" role="switch" aria-label="自主冲浪演示" aria-checked="false"></button></div><p class="small" id="surf-status" role="status">未开启</p><button class="soft full" id="surf-now" style="margin-top:12px">看看冲浪演示</button><p class="life-source">预置内容演示，不会访问网络。开启后在页面停留时自动演示。</p><div id="activity-list"></div></article>
+        </section>
+        <section id="page-settings" class="page" aria-labelledby="settings-title">
+          <div class="page-title"><div><h2 id="settings-title">连接与偏好</h2><p class="sub">为这片小海，接上一点灵感。</p></div></div>
+          <div class="card settings-card"><div class="section-heading"><h3>大模型连接</h3><span class="pill">未接入 · 原型</span></div>
+            <form id="settings-form"><label class="field">服务商<select id="provider"><option value="deepseek">DeepSeek</option><option value="compatible">兼容接口（待适配）</option></select></label><label class="field">接口地址<input type="url" id="base-url" required placeholder="https://api.deepseek.com"><small>正式版会将聊天内容发送到此服务。</small></label><label class="field">API Key<input type="password" disabled placeholder="原型不接收真实密钥" autocomplete="off"><small>正式版保存在系统安全存储中。</small></label><label class="field">模型名称<input id="model-name" required maxlength="120" placeholder="填写服务商提供的模型名称"></label><div class="form-row"><button type="button" class="soft" id="test-connection">演示连接提示</button><button class="primary" type="submit">保存演示配置</button></div></form>
+          </div>
+          <div class="card settings-card"><h3 style="margin-bottom:8px">陪伴偏好</h3><div class="setting-row"><span>主动问候</span><span>后续版本 · 默认关闭</span></div><div class="setting-row"><span>语音聊天</span><span>后续版本</span></div><div class="setting-row"><span>跨设备备份</span><span>后续版本</span></div></div>
+          <button class="soft full danger" id="reset-demo">重置本机演示数据</button><p class="prototype-note">青屿 · 设计原型 v0.2<br>当前操作仅影响这个浏览器中的演示数据。</p>
+        </section>
+      </main>
+      <nav class="nav" aria-label="主导航">
+        <button data-go="home" aria-current="page"><span class="nav-icon"><svg class="icon"><use href="#i-home"/></svg></span>陪伴</button>
+        <button data-go="chat"><span class="nav-icon"><svg class="icon"><use href="#i-chat"/></svg></span>聊天</button>
+        <button data-go="memory"><span class="nav-icon"><svg class="icon"><use href="#i-memory"/></svg></span>记忆</button>
+        <button data-go="character"><span class="nav-icon"><svg class="icon"><use href="#i-character"/></svg></span>生活</button>
+        <button data-go="settings"><span class="nav-icon"><svg class="icon"><use href="#i-settings"/></svg></span>设置</button>
+      </nav>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  <dialog id="memory-dialog" aria-labelledby="memory-dialog-title"><form id="memory-form"><h2 id="memory-dialog-title">记下一件小事</h2><label class="field">类型<select id="memory-category"><option value="preference">偏好</option><option value="event">重要事件</option><option value="agreement">相处约定</option><option value="other">其他</option></select></label><label class="field">想让伙伴记住什么？<textarea id="memory-content" required maxlength="500" placeholder="比如：比起咖啡，我更喜欢热茶。"></textarea></label><p class="sub small" id="memory-origin"></p><div class="dialog-actions"><button class="soft" type="button" data-close="memory-dialog">取消</button><button class="primary" type="submit">记住了</button></div></form></dialog>
+  <dialog id="info-dialog" aria-labelledby="info-title"><h2 id="info-title"></h2><p id="info-content" style="white-space:pre-wrap;font-size:13px"></p><div class="dialog-actions"><button class="soft" id="info-cancel" hidden>取消</button><button class="primary" id="info-confirm">知道了</button></div></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
