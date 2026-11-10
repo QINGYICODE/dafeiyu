@@ -1,0 +1,49 @@
+plugins { id 'com.android.application' }
+
+def serverUrl = providers.gradleProperty('dafeiyuServerUrl').orElse(providers.environmentVariable('DAFEIYU_SERVER_URL')).getOrElse('')
+def certificatePath = providers.gradleProperty('dafeiyuTrustedCertificate').orElse(providers.environmentVariable('DAFEIYU_TRUSTED_CERTIFICATE')).getOrElse('')
+def connectionResources = layout.buildDirectory.dir('generated/res/connection')
+
+android {
+    namespace 'com.qingyicode.dafeiyu'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.qingyicode.dafeiyu'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+        buildConfigField 'String', 'DEFAULT_SERVER_URL', '"' + serverUrl.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    }
+    buildFeatures { buildConfig true }
+    sourceSets { main.res.srcDir connectionResources }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    buildTypes { release { minifyEnabled false } }
+    testOptions { unitTests.returnDefaultValues = true }
+    lint { abortOnError true }
+}
+
+tasks.register('generateConnectionResources') {
+    inputs.property('serverUrl', serverUrl)
+    inputs.property('certificatePath', certificatePath)
+    if (certificatePath) inputs.file(file(certificatePath))
+    outputs.dir(connectionResources)
+    doLast {
+        def output = connectionResources.get().asFile
+        delete output
+        new File(output, 'xml').mkdirs()
+        def specificTrust = ''
+        if (certificatePath) {
+            def uri = new URI(serverUrl)
+            if (uri.scheme != 'https' || !uri.host || uri.userInfo || uri.query || uri.fragment || !(uri.path in ['', '/'])) {
+                throw new GradleException('Custom certificate requires an explicit HTTPS server origin.')
+            }
+            new File(output, 'raw').mkdirs()
+            new File(output, 'raw/companion_server.crt').bytes = file(certificatePath).bytes
+            specificTrust = """<domain-config cleartextTrafficPermitted="false"><domain includeSubdomains="false">${uri.host}</domain><trust-anchors><certificates src="system"/><certificates src="@raw/companion_server"/></trust-anchors></domain-config>"""
+        }
+        new File(output, 'xml/network_security_config.xml').text = """<?xml version="1.0" encoding="utf-8"?><network-security-config><base-config cleartextTrafficPermitted="false"><trust-anchors><certificates src="system"/></trust-anchors></base-config>${specificTrust}</network-security-config>"""
+    }
+}
+tasks.named('preBuild').configure { dependsOn 'generateConnectionResources' }
+dependencies { testImplementation 'junit:junit:4.13.2' }

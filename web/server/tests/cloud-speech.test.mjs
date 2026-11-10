@@ -14,6 +14,7 @@ function fixture(t, options = {}) {
   const calls = [];
   const cloud = new CloudSpeech(store, {fetcher:async(url, init)=>{calls.push({url,init,body:init?.body ? JSON.parse(init.body) : null});return options.fetcher ? options.fetcher(url,init) : Response.json({choices:[{message:{content:'大肥鱼，今天去B站看看。'}}],id:'request-test'});}, ...options});
   cloud.key = ()=>'test-private-key';
+  cloud.python = ()=>process.execPath; // normalize is mocked; no local audio runtime is required by these unit cases.
   cloud.normalize = async()=>({data:Buffer.from('unit-wave'),duration:18.9});
   t.after(()=>cloud.close());
   return {cloud, store, values, calls};

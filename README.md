@@ -1,57 +1,74 @@
-# 大肥鱼 · 手机里的 AI 伙伴
+# 大肥鱼 · AI 智能伙伴
 
-一个具有自主记忆、心情与兴趣的 AI 伙伴 App，应用和伙伴统一命名为「大肥鱼」。角色形象根据用户提供的蓝发女仆小鱼参考图重绘。第一版面向个人使用：Android 优先，用户自备 DeepSeek API Key，聊天和记忆保存在本机。
+一个会聊天、保留记忆、拥有心情与兴趣的 AI 伙伴。网页版原型已确定，Android 首版复用同一套界面，通过 HTTPS 连接伙伴服务。
 
-当前交付为 **可运行的本机网页版 v0.7**：[打开 http://localhost:5173](http://localhost:5173)。支持真实模型、自主记忆和成长、查梗与表情收发、用户图片/GIF/语音；新增大肥鱼真实语音回复、温柔女声试听，以及 B 站扫码连接、登录状态浏览和关注动态阅读。登录后可让大肥鱼按兴趣挑选阅读，投稿与互动尚未接入。本机服务使用环境变量 `DEEPSEEK_KEY`。Android APK 尚未打包。
+## 当前功能
 
-## 网页版运行
+- DeepSeek 对话，等待时显示正在输入，完整生成后一次发送。
+- AI 自主决定记住什么、如何称呼用户，性格随聊天与阅读经历逐渐变化。
+- 配置允许浏览的平台，自主探索并保留实际冲浪记录；支持查梗、收集与选择表情包。
+- QQ 风格的内联表情输入、图片/GIF、按住说话、松开发送和上滑取消。
+- 百炼语音识别、语音合成和参考音色复刻；保留可选的本地语音方案。
+- B 站扫码连接、登录状态浏览与关注动态阅读。投稿、评论和私信尚未接入。
+- 本机 SQLite 保存聊天、记忆与成长，支持文字记录的备份导入导出。
+
+安卓客户端本身不运行 Node 服务、浏览器冲浪或本地语音模型。电脑/服务器上的伙伴服务需要保持在线，手机与网页版共用该服务的数据。厂商 API Key 和 B 站会话留在服务端，不打包进 APK。
+
+## 运行伙伴服务
+
+需要 Node.js 22.13 或更新版本。先在终端或系统环境变量中配置密钥：
 
 ```bash
-cd /home/wen/Qing/web
+export DEEPSEEK_KEY='你的 DeepSeek 密钥'
+export QWEN_API_KEY='你的百炼密钥'
+cd web
+npm ci
 npm run build
 npm start
 ```
 
-前端固定在 5173，本机服务在 3101。详细说明见 [网页版 README](web/README.md)，检查与截图见 [实现验证](docs/web-implementation.md)。
+网页版固定运行于 `http://127.0.0.1:5173`，本机 API 服务运行于 `127.0.0.1:3101`。远程手机访问需要为前端配置可访问的 HTTPS 地址。不要直接公开 3101。
 
-功能以 [自主伙伴方案 v0.3](docs/autonomy-plan.md) 为依据：配置平台范围内自主浏览，AI 自主决定记忆，性格随经历成长，自主收集并按语境发送表情包。用户不能直接编辑性格，称呼从聊天了解。当前实际支持范围以网页版说明为准。
+`QWEN_API_KEY` 也可以使用 `DASHSCOPE_API_KEY`，后者在同时配置时优先。WSL 启动时兼容读取 Windows 用户/系统中已支持的环境变量。`.env.example` 仅为变量说明，服务不会自动加载 `.env` 文件。
 
-已完成 [B 站、抖音、小红书网页可行性实测](docs/platform-browsing-verification.md)：当前匿名浏览器中，B 站首页、搜索和详情可读；抖音部分详情与评论可读，首页和搜索受验证码限制；小红书当前环境未通过。结果只覆盖样本，不表示 App 已接入。
+语音解码与可选本地识别组件可通过 `npm run setup:speech` 安装。百炼云端识别不加载 Whisper，云端发声不加载 GPT-SoVITS。详细配置见 [百炼语音](docs/bailian-speech.md) 与 [本地参考音色](docs/klee-reference-voice.md)。
 
-## 旧交互原型（历史）
+## Android APK
 
-直接用浏览器打开 [prototype/index.html](prototype/index.html)，或在项目根目录执行：
+Android 客户端位于 [android/](android/README.md)，包名 `com.qingyicode.dafeiyu`，最低支持 Android 8.0。
+
+配置 JDK 17/21、Android SDK 和 `ANDROID_HOME` 后：
 
 ```bash
-python3 -m http.server 8080 --bind 127.0.0.1
+python3 scripts/build-android.py --server-url https://your-companion.example.com
 ```
 
-然后访问 `http://127.0.0.1:8080/prototype/`。原型不依赖构建工具、外部字体或第三方服务。
+构建会执行 Android 单元测试、lint 和打包，输出开发签名 APK 与 SHA-256 到本机 `releases/`。未指定服务地址的 APK 可在首次打开时填写地址。已连接时可在「连接与偏好 → 安卓客户端」修改。
 
-目前保留的是旧版 v0.2 原型，可以切换陪伴、聊天、记忆、生活、设置五页。聊天先显示「正在输入中……」，完成后整条出现，可以取消等待；试着说「以后叫我小林」，体验从对话了解称呼。生活页展示模拟心情、兴趣及自主冲浪演示。
+GitHub Actions 会自动检查网页版并构建通用 Android 预览包，可从仓库 **Actions → Verify and build Android preview → Artifacts** 下载。CI 包不含个人服务地址、自签证书或厂商凭据。自签证书的域名限定配置及安装说明见 [Android README](android/README.md)。
 
-旧原型仍保留手动记忆按钮、固定性格说明及 NOAA 预置见闻；这些属于旧演示，不代表 v0.3 的行为或平台配置。本轮不改原型及 SQL，后期实现时按新方案移除或替换。
+## 项目结构
 
-原型不调用模型、不自动联网：称呼使用明确句式模拟提取，心情变化使用演示规则，冲浪读取预置科普内容。正式 App 会用 AI 提取称呼、维护角色状态，调用真实搜索与网页读取工具。开启自主冲浪演示后，页面可见期间等待约 12 秒，会自动演示一次；也可立即手动演示。
+| 目录 | 内容 |
+| --- | --- |
+| `web/` | React 界面、Node 伙伴服务与测试 |
+| `android/` | 原生 WebView 客户端、系统权限与文件适配 |
+| `scripts/` | Android 构建与平台验证脚本 |
+| `docs/` | 产品、架构和各功能实现说明 |
+| `prototype/` | 历史交互演示，行为不代表当前正式实现 |
 
-浏览器仅保存演示聊天、记忆、从对话了解的称呼、生活状态和非敏感设置；API Key 输入框禁用。原先保存的可编辑人格和手填称呼不再使用，已有聊天和记忆保留。
+密钥、聊天数据库、B 站登录信息、本地模型、用户参考录音、构建输出和私人验证材料均不提交到仓库。界面角色资源保留在项目中。
 
-## 文档
+## 检查
 
-- [产品与页面设计](docs/product.md)
-- [网页版 v0.4 实现与验证](docs/web-implementation.md)
-- [v0.5 自然聊天、查梗与多媒体验证](docs/companion-v05.md)
-- [v0.6 B 站账号接入与验证](docs/bilibili-account.md)
-- [最新自主伙伴方案 v0.3](docs/autonomy-plan.md)
-- [网页浏览可行性实测与截图](docs/platform-browsing-verification.md)
-- [技术架构与数据说明](docs/architecture.md)
-- [称呼、心情、爱好与自主上网](docs/companion-life.md)
-- [SQLite 初始结构](docs/schema.sql)
-- [开发阶段与验收清单](docs/acceptance.md)
-- [原型验证记录](docs/verification.md)
+```bash
+cd web
+npm run typecheck
+npm test
+npm run build
 
-界面截图：[陪伴首页](artifacts/prototype-home.png) · [正在输入](artifacts/prototype-typing.png) · [完整回复](artifacts/prototype-chat.png) · [生活页面](artifacts/prototype-life.png) · [冲浪见闻](artifacts/prototype-surf.png)。
+cd ../android
+./gradlew testDebugUnitTest lintDebug assembleDebug
+```
 
-当前 B 站浏览器阅读已接入，抖音和小红书仍按实际可用状态处理。先使用网页版验证相处体验，后续再按需要进行手机 App 集成。
-
-支持通过阿里云百炼进行语音识别、语音合成和参考音色复刻。后端兼容环境变量 `QWEN_API_KEY`，详见 [百炼语音接入](docs/bailian-speech.md)。
+真实厂商、浏览器、麦克风和模拟器验证需要对应的本机环境。参考 [自主伙伴方案](docs/autonomy-plan.md)、[网页版说明](web/README.md)、[B 站接入](docs/bilibili-account.md)、[网页可行性记录](docs/platform-browsing-verification.md) 和 [Android 说明](android/README.md)。本机截图与语音验证产物不随源码发布。

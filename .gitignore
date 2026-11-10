@@ -6,6 +6,8 @@
 **/build/
 *.jks
 *.keystore
+*.apk
+*.aab
 *.pem
 *.key
 .env
@@ -17,6 +19,7 @@
 # Private validation output and user-supplied source recordings
 /artifacts/
 /releases/
+/web/public/downloads/
 *.wav
 *.mp3
 *.m4a
