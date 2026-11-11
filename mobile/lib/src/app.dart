@@ -23,6 +23,22 @@ class _CompanionAppState extends State<CompanionApp>
   final messenger = GlobalKey<ScaffoldMessengerState>();
   int tab = 1;
   DateTime? lastBack;
+  static const labels = ['小岛', '聊天', '生活', '记忆', '设置'];
+  static const icons = [
+    Icons.home_outlined,
+    Icons.chat_bubble_outline_rounded,
+    Icons.explore_outlined,
+    Icons.menu_book_outlined,
+    Icons.tune_rounded,
+  ];
+  static const selectedIcons = [
+    Icons.home_rounded,
+    Icons.chat_bubble_rounded,
+    Icons.explore,
+    Icons.menu_book_rounded,
+    Icons.tune_rounded,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -37,12 +53,9 @@ class _CompanionAppState extends State<CompanionApp>
     final message = c.notice;
     c.clearNotice();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        messenger.currentState?.hideCurrentSnackBar();
-        messenger.currentState?.showSnackBar(
-          SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-        );
-      }
+      if (!mounted) return;
+      messenger.currentState?.hideCurrentSnackBar();
+      messenger.currentState?.showSnackBar(SnackBar(content: Text(message)));
     });
   }
 
@@ -66,6 +79,29 @@ class _CompanionAppState extends State<CompanionApp>
     super.dispose();
   }
 
+  void navigate(int value) {
+    unawaited(c.recorder.end(cancel: true));
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => tab = value);
+  }
+
+  void more(String action) {
+    if (action == 'new') unawaited(c.action('/conversations'));
+    if (action == 'autoplay') {
+      unawaited(
+        c.action(
+          '/settings',
+          method: 'PUT',
+          body: {
+            'voice': {
+              'autoplay': object(c.settings['voice'])['autoplay'] != true,
+            },
+          },
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     title: '大肥鱼',
@@ -74,85 +110,48 @@ class _CompanionAppState extends State<CompanionApp>
     locale: const Locale('zh', 'CN'),
     supportedLocales: const [Locale('zh', 'CN')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
-    theme: ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: blue,
-        surface: paper,
-        brightness: Brightness.light,
-      ),
-      scaffoldBackgroundColor: paper,
-      textTheme: ThemeData.light().textTheme.apply(
-        bodyColor: ink,
-        displayColor: ink,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: ink,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: const Color(0xfffbfdfe),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(13),
-          borderSide: const BorderSide(color: Color(0xffdfe8ee)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(13),
-          borderSide: const BorderSide(color: Color(0xffdfe8ee)),
-        ),
-        labelStyle: const TextStyle(color: muted),
-        helperStyle: const TextStyle(fontSize: 11, color: muted),
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xffe3f0f9),
-        labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
-            fontSize: 11,
-            color: states.contains(WidgetState.selected) ? blue : muted,
-          ),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: blue,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(44, 46),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(13),
-          ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: blue,
-          minimumSize: const Size(44, 44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(13),
-          ),
-        ),
-      ),
-      dividerColor: const Color(0xffe8eef1),
-    ),
+    theme: companionTheme(Brightness.light),
+    darkTheme: companionTheme(Brightness.dark),
+    themeMode: ThemeMode.system,
+    themeAnimationDuration:
+        WidgetsBinding
+            .instance
+            .platformDispatcher
+            .accessibilityFeatures
+            .disableAnimations
+        ? Duration.zero
+        : const Duration(milliseconds: 180),
     home: AnimatedBuilder(
       animation: c,
       builder: (context, _) {
         if (c.data.isEmpty) return ConnectionPage(controller: c);
         final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+        final largeText = MediaQuery.textScalerOf(context).scale(12) > 18;
+        final wide =
+            MediaQuery.sizeOf(context).width >= 840 &&
+            MediaQuery.sizeOf(context).height >= 500;
+        final contents = IndexedStack(
+          index: tab,
+          children: [
+            IslandPage(controller: c, navigate: navigate),
+            ChatPage(controller: c),
+            LifePage(controller: c),
+            MemoriesPage(controller: c),
+            SettingsPage(controller: c),
+          ],
+        );
+        final column = Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 880),
+            child: contents,
+          ),
+        );
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (popped, result) {
             if (popped) return;
             if (tab != 0) {
-              setState(() => tab = 0);
+              navigate(0);
               return;
             }
             if (lastBack != null &&
@@ -165,29 +164,36 @@ class _CompanionAppState extends State<CompanionApp>
           },
           child: Scaffold(
             appBar: AppBar(
+              toolbarHeight: largeText ? 80 : 64,
+              titleSpacing: 20,
               title: tab == 1
                   ? Row(
                       children: [
-                        const Avatar(size: 35),
-                        const SizedBox(width: 10),
+                        const Avatar(size: 32),
+                        const SizedBox(width: 11),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 '大肥鱼',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.w600,
+                                  color: context.colors.ink,
                                 ),
                               ),
                               Text(
                                 c.online
                                     ? string(c.personality['mood'], '平静')
                                     : '连接中断',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: muted,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.colors.muted,
                                 ),
                               ),
                             ],
@@ -195,107 +201,112 @@ class _CompanionAppState extends State<CompanionApp>
                         ),
                       ],
                     )
-                  : Text(
-                      ['我的小岛', '和大肥鱼聊天', '生活足迹', '记得的小事', '连接与偏好'][tab],
-                      style: const TextStyle(fontSize: 18),
-                    ),
-              actions: [
-                if (tab == 1) ...[
-                  IconButton(
-                    tooltip: object(c.settings['voice'])['autoplay'] == true
-                        ? '关闭语音自动播放'
-                        : '开启语音自动播放',
-                    onPressed: () => c.action(
-                      '/settings',
-                      method: 'PUT',
-                      body: {
-                        'voice': {
-                          'autoplay':
-                              object(c.settings['voice'])['autoplay'] != true,
-                        },
-                      },
-                    ),
-                    icon: Icon(
-                      object(c.settings['voice'])['autoplay'] == true
-                          ? Icons.volume_up_outlined
-                          : Icons.volume_off_outlined,
-                      size: 21,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: '聊天历史',
-                    onPressed: () => conversations(context, c),
-                    icon: const Icon(Icons.history_rounded),
-                  ),
-                  IconButton(
-                    tooltip: '新聊天',
-                    onPressed: c.busy ? null : () => c.action('/conversations'),
-                    icon: const Icon(Icons.add_rounded),
-                  ),
-                ] else
-                  Icon(
-                    c.online
-                        ? Icons.cloud_done_outlined
-                        : Icons.cloud_off_outlined,
-                    size: 19,
-                    color: c.online ? const Color(0xff85ae9b) : muted,
-                  ),
-                const SizedBox(width: 8),
-              ],
+                  : Text(labels[tab]),
+              actions: tab == 1
+                  ? [
+                      IconButton(
+                        tooltip: '聊天历史',
+                        onPressed: () => conversations(context, c),
+                        icon: const Icon(Icons.history_rounded, size: 23),
+                      ),
+                      PopupMenuButton<String>(
+                        tooltip: '更多聊天选项',
+                        icon: const Icon(Icons.more_horiz_rounded),
+                        onSelected: more,
+                        itemBuilder: (_) => [
+                          PopupMenuItem(
+                            value: 'new',
+                            enabled: !c.busy,
+                            child: const ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.add_comment_outlined),
+                              title: Text('新聊天'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'autoplay',
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                object(c.settings['voice'])['autoplay'] == true
+                                    ? Icons.volume_up_outlined
+                                    : Icons.volume_off_outlined,
+                              ),
+                              title: Text(
+                                object(c.settings['voice'])['autoplay'] == true
+                                    ? '关闭语音自动播放'
+                                    : '开启语音自动播放',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 6),
+                    ]
+                  : [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: Semantics(
+                          label: c.online ? '伙伴服务已连接' : '伙伴服务连接中断',
+                          child: Icon(
+                            c.online
+                                ? Icons.cloud_done_outlined
+                                : Icons.cloud_off_outlined,
+                            size: 20,
+                            color: context.colors.muted,
+                          ),
+                        ),
+                      ),
+                    ],
             ),
             body: SafeArea(
               top: false,
-              bottom: keyboard,
-              child: IndexedStack(
-                index: tab,
-                children: [
-                  IslandPage(
-                    controller: c,
-                    navigate: (value) => setState(() => tab = value),
-                  ),
-                  ChatPage(controller: c),
-                  LifePage(controller: c),
-                  MemoriesPage(controller: c),
-                  SettingsPage(controller: c),
-                ],
-              ),
+              bottom: keyboard || wide,
+              child: wide
+                  ? Row(
+                      children: [
+                        NavigationRail(
+                          selectedIndex: tab,
+                          onDestinationSelected: navigate,
+                          labelType: NavigationRailLabelType.all,
+                          minWidth: 88,
+                          destinations: [
+                            for (var i = 0; i < labels.length; i++)
+                              NavigationRailDestination(
+                                icon: Icon(icons[i]),
+                                selectedIcon: Icon(selectedIcons[i]),
+                                label: Text(labels[i]),
+                              ),
+                          ],
+                        ),
+                        Expanded(child: column),
+                      ],
+                    )
+                  : column,
             ),
-            bottomNavigationBar: keyboard
+            bottomNavigationBar: keyboard || wide
                 ? null
-                : NavigationBar(
-                    selectedIndex: tab,
-                    height: 70,
-                    onDestinationSelected: (value) {
-                      unawaited(c.recorder.end(cancel: true));
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      setState(() => tab = value);
-                    },
-                    destinations: const [
-                      NavigationDestination(
-                        icon: Icon(Icons.home_outlined),
-                        selectedIcon: Icon(Icons.home_rounded),
-                        label: '小岛',
+                : SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: NavigationBar(
+                          selectedIndex: tab,
+                          height: largeText ? 90 : 68,
+                          onDestinationSelected: navigate,
+                          destinations: [
+                            for (var i = 0; i < labels.length; i++)
+                              NavigationDestination(
+                                icon: Icon(icons[i]),
+                                selectedIcon: Icon(selectedIcons[i]),
+                                label: labels[i],
+                              ),
+                          ],
+                        ),
                       ),
-                      NavigationDestination(
-                        icon: Icon(Icons.chat_bubble_outline_rounded),
-                        selectedIcon: Icon(Icons.chat_bubble_rounded),
-                        label: '聊天',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.explore_outlined),
-                        selectedIcon: Icon(Icons.explore),
-                        label: '生活',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.menu_book_outlined),
-                        selectedIcon: Icon(Icons.menu_book),
-                        label: '记忆',
-                      ),
-                      NavigationDestination(
-                        icon: Icon(Icons.tune_rounded),
-                        label: '设置',
-                      ),
-                    ],
+                    ),
                   ),
           ),
         );
@@ -312,15 +323,15 @@ class ConnectionPage extends StatelessWidget {
     body: SafeArea(
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
+          padding: EdgeInsets.all(30),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: BoxConstraints(maxWidth: 420),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Avatar(size: 116),
-                const SizedBox(height: 24),
-                const Text(
+                Avatar(size: 116),
+                SizedBox(height: 24),
+                Text(
                   '大肥鱼',
                   style: TextStyle(
                     fontSize: 30,
@@ -328,22 +339,22 @@ class ConnectionPage extends StatelessWidget {
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   controller.connecting ? '正在回到小岛……' : '把今天的日常，说给我听。',
-                  style: const TextStyle(color: muted, fontSize: 16),
+                  style: TextStyle(color: context.colors.muted, fontSize: 16),
                 ),
-                const SizedBox(height: 28),
+                SizedBox(height: 28),
                 if (controller.connecting)
-                  const CircularProgressIndicator(strokeWidth: 2),
+                  CircularProgressIndicator(strokeWidth: 2),
                 if (controller.error.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 18),
+                    padding: EdgeInsets.only(bottom: 18),
                     child: Text(
                       controller.error,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xffb37869),
+                      style: TextStyle(
+                        color: context.colors.danger,
                         height: 1.7,
                       ),
                     ),
@@ -354,24 +365,28 @@ class ConnectionPage extends StatelessWidget {
                       width: double.infinity,
                       child: FilledButton.icon(
                         onPressed: () => controller.connect(controller.server),
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('重新连接'),
+                        icon: Icon(Icons.refresh_rounded),
+                        label: Text('重新连接'),
                       ),
                     ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () => connectionDialog(context, controller),
-                      icon: const Icon(Icons.dns_outlined),
-                      label: const Text('连接伙伴服务'),
+                      icon: Icon(Icons.dns_outlined),
+                      label: Text('连接伙伴服务'),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
+                  SizedBox(height: 20),
+                  Text(
                     '连接你自己的服务，沿用原来的聊天与记忆。',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: muted, fontSize: 12, height: 1.8),
+                    style: TextStyle(
+                      color: context.colors.muted,
+                      fontSize: 12,
+                      height: 1.8,
+                    ),
                   ),
                 ],
               ],

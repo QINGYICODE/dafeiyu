@@ -19,7 +19,7 @@ Future<void> connectionDialog(
     context: context,
     builder: (context) => AlertDialog(
       scrollable: true,
-      title: const Text('连接你的小岛'),
+      title: Text('连接你的小岛'),
       content: Form(
         key: form,
         child: SizedBox(
@@ -28,17 +28,17 @@ Future<void> connectionDialog(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 '输入伙伴服务的 HTTPS 首页。Flutter 客户端会沿用这个服务中的聊天、记忆和账号。',
                 style: TextStyle(height: 1.6),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
               TextFormField(
-                key: const Key('server-address'),
+                key: Key('server-address'),
                 controller: input,
                 keyboardType: TextInputType.url,
                 autocorrect: false,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: '服务地址',
                   hintText: 'https://example.com:38413',
                 ),
@@ -51,27 +51,24 @@ Future<void> connectionDialog(
                   }
                 },
               ),
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 12),
+              Text(
                 '不需要在这里填写 API Key。服务需保持运行。',
-                style: TextStyle(fontSize: 12, color: muted),
+                style: TextStyle(fontSize: 12, color: context.colors.muted),
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('取消')),
         FilledButton(
           onPressed: () {
             if (form.currentState!.validate()) {
               Navigator.pop(context, input.text);
             }
           },
-          child: const Text('保存并连接'),
+          child: Text('保存并连接'),
         ),
       ],
     ),
@@ -140,13 +137,13 @@ class _SettingsPageState extends State<SettingsPage> {
     bool secret = false,
     int lines = 1,
   }) => Padding(
-    padding: const EdgeInsets.only(bottom: 15),
+    padding: EdgeInsets.only(bottom: 15),
     child: TextFormField(
       key: ValueKey('$epoch:$groupName:$key'),
       initialValue: '${value(groupName, key) ?? ''}',
       obscureText: secret,
       maxLines: secret ? 1 : lines,
-      style: const TextStyle(fontSize: 15),
+      style: const TextStyle(fontSize: 17),
       keyboardType: number ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: title,
@@ -160,10 +157,14 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget toggle(String groupName, String key, String title, String detail) =>
       SwitchListTile.adaptive(
         contentPadding: EdgeInsets.zero,
-        title: Text(title, style: const TextStyle(fontSize: 15)),
+        title: Text(title, style: TextStyle(fontSize: 15)),
         subtitle: Text(
           detail,
-          style: const TextStyle(color: muted, fontSize: 12, height: 1.5),
+          style: TextStyle(
+            color: context.colors.muted,
+            fontSize: 12,
+            height: 1.5,
+          ),
         ),
         value: value(groupName, key) == true,
         onChanged: (v) => change(groupName, key, v),
@@ -181,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
         current: '$current（当前配置）',
     };
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: EdgeInsets.only(bottom: 15),
       child: DropdownButtonFormField<String>(
         key: ValueKey('$epoch:$groupName:$key:$current'),
         initialValue: current.isEmpty ? null : current,
@@ -211,15 +212,33 @@ class _SettingsPageState extends State<SettingsPage> {
     String subtitle,
     IconData icon,
     List<Widget> children,
-  ) => Padding(
-    padding: const EdgeInsets.only(bottom: 18),
-    child: Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [SectionHeading(title, subtitle, icon), ...children],
+  ) {
+    if (title == '伙伴服务' || title == '大肥鱼的声音') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Panel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [SectionHeading(title, subtitle, icon), ...children],
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Panel(
+        padding: EdgeInsets.zero,
+        child: ExpansionTile(
+          maintainState: true,
+          tilePadding: const EdgeInsets.fromLTRB(18, 12, 16, 0),
+          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+          title: SectionHeading(title, subtitle, icon),
+          children: children,
+        ),
       ),
-    ),
-  );
+    );
+  }
+
   Future<void> guarded(Future<void> Function() operation) async {
     try {
       await operation();
@@ -333,38 +352,35 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, local) => AlertDialog(
           scrollable: true,
-          title: const Text('清空这座小岛？'),
+          title: Text('清空这座小岛？'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('聊天、记忆、性格成长与媒体缓存会清除，无法撤销。请先导出备份。'),
-              const SizedBox(height: 16),
+              Text('聊天、记忆、性格成长与媒体缓存会清除，无法撤销。请先导出备份。'),
+              SizedBox(height: 16),
               TextField(
                 controller: input,
                 onChanged: (_) => local(() {}),
-                decoration: const InputDecoration(labelText: '输入「清空数据」确认'),
+                decoration: InputDecoration(labelText: '输入「清空数据」确认'),
               ),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: include,
                 onChanged: (v) => local(() => include = v ?? false),
-                title: const Text(
-                  '同时清除连接配置并断开 B 站',
-                  style: TextStyle(fontSize: 13),
-                ),
+                title: Text('同时清除连接配置并断开 B 站', style: TextStyle(fontSize: 13)),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('保留数据'),
+              child: Text('保留数据'),
             ),
             FilledButton(
               onPressed: input.text == '清空数据'
                   ? () => Navigator.pop(context, true)
                   : null,
-              child: const Text('确认清空'),
+              child: Text('确认清空'),
             ),
           ],
         ),
@@ -390,38 +406,32 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
             children: [
-              const Text(
-                '连接与偏好',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              const Text('性格、称呼和记忆，从相处中自然形成。', style: TextStyle(color: muted)),
-              const SizedBox(height: 20),
+              const PageIntro('连接与偏好', '让相处，保持舒服的样子。'),
               section('伙伴服务', '换一台手机，也能接着聊。', Icons.phone_android, [
                 Text(
                   c.server,
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.colors.muted, fontSize: 13),
                 ),
-                const SizedBox(height: 10),
-                const Text(
+                SizedBox(height: 10),
+                Text(
                   '手机与网页版共用伙伴服务。聊天、记忆和冲浪由服务保存和运行，厂商密钥留在服务端。',
                   style: TextStyle(fontSize: 13, height: 1.6),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 OutlinedButton.icon(
                   onPressed: () => connectionDialog(context, c),
-                  icon: const Icon(Icons.dns_outlined),
-                  label: const Text('修改服务地址'),
+                  icon: Icon(Icons.dns_outlined),
+                  label: Text('修改服务地址'),
                 ),
-                const Text(
-                  'Flutter 0.2.0 · Android',
-                  style: TextStyle(fontSize: 11, color: muted),
+                Text(
+                  '大肥鱼 Android · 0.3.0',
+                  style: TextStyle(fontSize: 12, color: context.colors.muted),
                 ),
               ]),
               BilibiliPanel(controller: c),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
               section(
                 '连接大模型',
                 object(c.settings['model'])['keyConfigured'] == true
@@ -430,11 +440,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 Icons.auto_awesome_outlined,
                 [
                   if (object(c.settings['model'])['keySource'] == 'environment')
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(bottom: 16),
                       child: Text(
                         '正在使用服务端环境变量 DEEPSEEK_KEY',
-                        style: TextStyle(color: blue, fontSize: 12),
+                        style: TextStyle(
+                          color: context.colors.accent,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   select('model', 'provider', '服务商', {
@@ -444,13 +457,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   field('model', 'name', '对话模型名称'),
                   field('model', 'baseUrl', '模型接口地址'),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: EdgeInsets.only(bottom: 12),
                     child: TextFormField(
                       key: ValueKey('secret-$epoch'),
                       obscureText: true,
                       autocorrect: false,
                       enableSuggestions: false,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'API Key',
                         helperText: '留空保留现有密钥，仅通过 HTTPS 发送到服务端',
                       ),
@@ -468,8 +481,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed: c.busy || dirty
                         ? null
                         : () => c.action('/model/test', success: '模型连接成功。'),
-                    icon: const Icon(Icons.link),
-                    label: const Text('测试模型连接'),
+                    icon: Icon(Icons.link),
+                    label: Text('测试模型连接'),
                   ),
                 ],
               ),
@@ -509,15 +522,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed: c.busy || dirty || cloud['keyConfigured'] != true
                         ? null
                         : () => guarded(testRecognition),
-                    icon: const Icon(Icons.mic_none),
-                    label: const Text('选择录音测试识别'),
+                    icon: Icon(Icons.mic_none),
+                    label: Text('选择录音测试识别'),
                   ),
                   if (transcript.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       child: SelectableText(
                         '实际识别结果\n$transcript',
-                        style: const TextStyle(height: 1.7),
+                        style: TextStyle(height: 1.7),
                       ),
                     ),
                   toggle(
@@ -527,6 +540,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     '回复完整生成后，再发送语音气泡',
                   ),
                   select('cloudSpeech', 'ttsModel', '云端合成模型', {
+                    'cosyvoice-v3-flash': 'CosyVoice v3 · 龙呼呼',
                     'qwen-audio-3.1-tts-flash': 'Qwen Audio 3.1 Flash',
                     'qwen-audio-3.1-tts-plus': 'Qwen Audio 3.1 Plus',
                   }),
@@ -534,95 +548,106 @@ class _SettingsPageState extends State<SettingsPage> {
                     'cloudSpeech',
                     'voiceId',
                     '云端音色 ID',
-                    helper: '系统或复刻音色，须与模型匹配',
+                    helper:
+                        value('cloudSpeech', 'ttsModel') == 'cosyvoice-v3-flash'
+                        ? '龙呼呼：longhuhu_v3，使用系统音色，无需复刻。'
+                        : '音色须与模型匹配',
                   ),
-                  OutlinedButton(
-                    onPressed: c.busy || dirty
-                        ? null
-                        : () => c.action(
-                            '/speech/clone/check',
-                            body: {'voiceId': value('cloudSpeech', 'voiceId')},
-                          ),
-                    child: const Text('验证已有复刻音色'),
-                  ),
-                  ExpansionTile(
-                    tilePadding: EdgeInsets.zero,
-                    title: const Text(
-                      '参考录音与声音复刻',
-                      style: TextStyle(fontSize: 15),
+                  if (value('cloudSpeech', 'ttsModel') !=
+                      'cosyvoice-v3-flash') ...[
+                    OutlinedButton(
+                      onPressed: c.busy || dirty
+                          ? null
+                          : () => c.action(
+                              '/speech/clone/check',
+                              body: {
+                                'voiceId': value('cloudSpeech', 'voiceId'),
+                              },
+                            ),
+                      child: Text('验证已有复刻音色'),
                     ),
-                    children: [
-                      const Text(
-                        '10–30 秒清晰单人录音，4 MB 以内。创建会把录音上传百炼，费用与审核以厂商规则为准。',
-                        style: TextStyle(
-                          color: muted,
-                          fontSize: 12,
-                          height: 1.7,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          OutlinedButton(
-                            onPressed: c.busy || dirty
-                                ? null
-                                : () => guarded(cloneVoice),
-                            child: const Text('选择录音并创建'),
+                    ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      title: Text('参考录音与声音复刻', style: TextStyle(fontSize: 15)),
+                      children: [
+                        Text(
+                          '10–30 秒清晰单人录音，4 MB 以内。创建会把录音上传百炼，费用与审核以厂商规则为准。',
+                          style: TextStyle(
+                            color: context.colors.muted,
+                            fontSize: 12,
+                            height: 1.7,
                           ),
-                          if (cloud['referenceAvailable'] == true)
+                        ),
+                        SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
                             OutlinedButton(
                               onPressed: c.busy || dirty
                                   ? null
-                                  : () => cloneVoice(reference: true),
-                              child: const Text('使用已有参考录音'),
+                                  : () => guarded(cloneVoice),
+                              child: Text('选择录音并创建'),
                             ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  if (clone.isNotEmpty) ...[
-                    Text(
-                      '音色状态：${clone['status']}',
-                      style: const TextStyle(color: blue),
-                    ),
-                    const SizedBox(height: 8),
-                    SelectableText(
-                      string(clone['voiceId']),
-                      style: const TextStyle(fontSize: 11, color: muted),
-                    ),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        TextButton(
-                          onPressed: c.busy || dirty
-                              ? null
-                              : () => c.action('/speech/clone/check'),
-                          child: const Text('更新状态'),
-                        ),
-                        TextButton(
-                          onPressed:
-                              clone['status'] == 'OK' &&
-                                  clone['compatible'] == true
-                              ? () {
-                                  change(
-                                    'cloudSpeech',
-                                    'voiceId',
-                                    clone['voiceId'],
-                                  );
-                                  change('cloudSpeech', 'ttsEnabled', true);
-                                }
-                              : null,
-                          child: const Text('使用这个音色'),
+                            if (cloud['referenceAvailable'] == true)
+                              OutlinedButton(
+                                onPressed: c.busy || dirty
+                                    ? null
+                                    : () => cloneVoice(reference: true),
+                                child: Text('使用已有参考录音'),
+                              ),
+                          ],
                         ),
                       ],
                     ),
+                    if (clone.isNotEmpty) ...[
+                      Text(
+                        '音色状态：${clone['status']}',
+                        style: TextStyle(color: context.colors.accent),
+                      ),
+                      SizedBox(height: 8),
+                      SelectableText(
+                        string(clone['voiceId']),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.colors.muted,
+                        ),
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          TextButton(
+                            onPressed: c.busy || dirty
+                                ? null
+                                : () => c.action('/speech/clone/check'),
+                            child: Text('更新状态'),
+                          ),
+                          TextButton(
+                            onPressed:
+                                clone['status'] == 'OK' &&
+                                    clone['compatible'] == true
+                                ? () {
+                                    change(
+                                      'cloudSpeech',
+                                      'voiceId',
+                                      clone['voiceId'],
+                                    );
+                                    change('cloudSpeech', 'ttsEnabled', true);
+                                  }
+                                : null,
+                            child: Text('使用这个音色'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                   if (dirty)
-                    const Text(
+                    Text(
                       '先保存，再测试或试听。',
-                      style: TextStyle(color: muted, fontSize: 12),
+                      style: TextStyle(
+                        color: context.colors.muted,
+                        fontSize: 12,
+                      ),
                     ),
                 ],
               ),
@@ -647,8 +672,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 toggle('voice', 'autoplay', '自动播放新语音', '只播放新到的语音，不重播历史消息'),
                 OutlinedButton.icon(
                   onPressed: c.busy || dirty ? null : preview,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('听听这个声音'),
+                  icon: Icon(Icons.play_arrow),
+                  label: Text('听听这个声音'),
                 ),
               ]),
               section('允许去逛的地方', '只从开启的来源阅读与收集', Icons.explore_outlined, [
@@ -667,7 +692,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           object(c.data['platforms'])[entry.key],
                         )['message'],
                       ),
-                      style: const TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.colors.muted,
+                      ),
                     ),
                     secondary: IconButton(
                       tooltip: '检查可读性',
@@ -680,7 +708,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   true
                           ? null
                           : () => c.action('/platforms/${entry.key}/test'),
-                      icon: const Icon(Icons.refresh, size: 18),
+                      icon: Icon(Icons.refresh, size: 18),
                     ),
                   ),
               ]),
@@ -715,52 +743,57 @@ class _SettingsPageState extends State<SettingsPage> {
                         builder: (_) => StickerLibrary(controller: c),
                       ),
                     ),
-                    child: const Text('打开表情收藏'),
+                    child: Text('打开表情收藏'),
                   ),
                 ],
               ),
               section('小岛的数据', '记录保存在已连接的伙伴服务', Icons.shield_outlined, [
-                const Text(
+                Text(
                   '备份包含文字、记忆与成长状态，不包含密钥和媒体文件。',
-                  style: TextStyle(fontSize: 12, color: muted, height: 1.7),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.colors.muted,
+                    height: 1.7,
+                  ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   children: [
                     OutlinedButton.icon(
                       onPressed: c.busy ? null : () => guarded(exportBackup),
-                      icon: const Icon(Icons.download),
-                      label: const Text('导出备份'),
+                      icon: Icon(Icons.download),
+                      label: Text('导出备份'),
                     ),
                     OutlinedButton.icon(
                       onPressed: c.busy ? null : () => guarded(importBackup),
-                      icon: const Icon(Icons.upload),
-                      label: const Text('恢复备份'),
+                      icon: Icon(Icons.upload),
+                      label: Text('恢复备份'),
                     ),
                   ],
                 ),
                 TextButton(
                   onPressed: c.busy ? null : reset,
-                  child: const Text(
+                  child: Text(
                     '清空服务端数据',
-                    style: TextStyle(color: Color(0xffb8786f)),
+                    style: TextStyle(color: context.colors.danger),
                   ),
                 ),
               ]),
             ],
           ),
         ),
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: c.busy || !dirty ? null : save,
-            icon: const Icon(Icons.check),
-            label: Text(c.busy ? '正在保存……' : '保存连接与偏好'),
+        if (dirty)
+          Container(
+            color: context.colors.surface,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: c.busy || !dirty ? null : save,
+              icon: Icon(Icons.check),
+              label: Text(c.busy ? '正在保存……' : '保存连接与偏好'),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -777,20 +810,23 @@ class BilibiliPanel extends StatelessWidget {
         profile = object(account['profile']);
     final connected = account['connected'] == true;
     return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.zero,
+      child: ExpansionTile(
+        maintainState: true,
+        tilePadding: const EdgeInsets.fromLTRB(18, 12, 16, 0),
+        childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+        title: SectionHeading(
+          '大肥鱼的 B 站账号',
+          connected
+              ? '已连接 ${string(profile['name'])}'
+              : string(account['message'], '还没有连接账号'),
+          Icons.live_tv_outlined,
+        ),
         children: [
-          SectionHeading(
-            '大肥鱼的 B 站账号',
-            connected
-                ? '已连接 ${string(profile['name'])}'
-                : string(account['message'], '还没有连接账号'),
-            Icons.live_tv_outlined,
-          ),
           if (connected) ...[
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('使用登录状态浏览', style: TextStyle(fontSize: 15)),
+              title: Text('使用登录状态浏览', style: TextStyle(fontSize: 15)),
               value: preferences['useForBrowsing'] == true,
               onChanged: (v) => c.action(
                 '/accounts/bilibili/preferences',
@@ -800,7 +836,7 @@ class BilibiliPanel extends StatelessWidget {
             ),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
-              title: const Text('阅读关注动态', style: TextStyle(fontSize: 15)),
+              title: Text('阅读关注动态', style: TextStyle(fontSize: 15)),
               value: preferences['useFollowingFeed'] == true,
               onChanged: (v) => c.action(
                 '/accounts/bilibili/preferences',
@@ -815,7 +851,7 @@ class BilibiliPanel extends StatelessWidget {
                   onPressed: c.busy
                       ? null
                       : () => c.action('/accounts/bilibili/check'),
-                  child: const Text('检查登录状态'),
+                  child: Text('检查登录状态'),
                 ),
                 OutlinedButton(
                   onPressed: c.busy
@@ -833,9 +869,9 @@ class BilibiliPanel extends StatelessWidget {
                               builder: (context) => FractionallySizedBox(
                                 heightFactor: .7,
                                 child: ListView(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: EdgeInsets.all(20),
                                   children: [
-                                    const Text(
+                                    Text(
                                       '关注动态',
                                       style: TextStyle(
                                         fontSize: 20,
@@ -843,7 +879,7 @@ class BilibiliPanel extends StatelessWidget {
                                       ),
                                     ),
                                     if (objects(result['items']).isEmpty)
-                                      const EmptyState(
+                                      EmptyState(
                                         '这次没有读到动态',
                                         '可能暂时没有新内容，也可能受平台限制。',
                                       ),
@@ -860,7 +896,7 @@ class BilibiliPanel extends StatelessWidget {
                             );
                           }
                         },
-                  child: const Text('看看关注动态'),
+                  child: Text('看看关注动态'),
                 ),
               ],
             ),
@@ -877,9 +913,9 @@ class BilibiliPanel extends StatelessWidget {
                         await c.action('/accounts/bilibili', method: 'DELETE');
                       }
                     },
-              child: const Text(
+              child: Text(
                 '断开账号',
-                style: TextStyle(color: Color(0xffb8786f)),
+                style: TextStyle(color: context.colors.danger),
               ),
             ),
           ] else
@@ -896,12 +932,16 @@ class BilibiliPanel extends StatelessWidget {
                         );
                       }
                     },
-              icon: const Icon(Icons.qr_code),
-              label: const Text('扫码连接 B 站'),
+              icon: Icon(Icons.qr_code),
+              label: Text('扫码连接 B 站'),
             ),
-          const Text(
+          Text(
             '目前支持浏览与关注动态，不会自动投稿、评论或私信。',
-            style: TextStyle(color: muted, fontSize: 11, height: 1.6),
+            style: TextStyle(
+              color: context.colors.muted,
+              fontSize: 12,
+              height: 1.6,
+            ),
           ),
         ],
       ),
@@ -930,7 +970,7 @@ class _BilibiliLoginState extends State<BilibiliLogin> {
   void initState() {
     super.initState();
     login = widget.initial;
-    timer = Timer.periodic(const Duration(seconds: 2), (_) => poll());
+    timer = Timer.periodic(Duration(seconds: 2), (_) => poll());
   }
 
   Future<void> poll() async {
@@ -983,14 +1023,14 @@ class _BilibiliLoginState extends State<BilibiliLogin> {
     } catch (_) {}
     return AlertDialog(
       scrollable: true,
-      title: const Text('连接 B 站账号'),
+      title: Text('连接 B 站账号'),
       content: SizedBox(
         width: 290,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (image != null) Image.memory(image, width: 240, height: 240),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Text(
               login['status'] == 'scanned'
                   ? '已扫码，请在 B 站 App 确认。'
@@ -998,18 +1038,18 @@ class _BilibiliLoginState extends State<BilibiliLogin> {
                   ? '二维码已过期，请关闭后重新获取。'
                   : '使用 B 站 App 扫码，也可截图后从扫一扫的相册中识别。',
               textAlign: TextAlign.center,
-              style: const TextStyle(height: 1.7),
+              style: TextStyle(height: 1.7),
             ),
             if (error.isNotEmpty)
-              Text(error, style: const TextStyle(color: muted, fontSize: 12)),
+              Text(
+                error,
+                style: TextStyle(color: context.colors.muted, fontSize: 12),
+              ),
           ],
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('关闭'),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('关闭')),
       ],
     );
   }

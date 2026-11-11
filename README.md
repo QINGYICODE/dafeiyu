@@ -35,7 +35,7 @@ npm start
 
 ## Android APK
 
-Flutter 客户端位于 [mobile/](mobile/README.md)，聊天、表情、录音、图片、记忆、冲浪及设置均由 Flutter 控件实现。包名 `com.qingyicode.dafeiyu`，最低支持 Android 8.0，版本 `0.2.0+2`。
+Flutter 客户端位于 [mobile/](mobile/README.md)，聊天、表情、录音、图片、记忆、冲浪及设置均由 Flutter 控件实现。包名 `com.qingyicode.dafeiyu`，最低支持 Android 8.0，版本 `0.3.0+3`。
 
 配置 Flutter 3.41.9、完整 JDK 17/21、Android SDK 和 `ANDROID_HOME` 后：
 

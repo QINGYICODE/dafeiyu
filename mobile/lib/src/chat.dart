@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart' show CustomSemanticsAction;
 import 'api.dart';
 import 'controller.dart';
 import 'widgets.dart';
@@ -27,11 +28,11 @@ String fileMime(String name) {
 
 Future<Uint8List> pickedBytes(PlatformFile file, int limit) async {
   final length = await file.length();
-  if (length != null && length > limit) throw const ApiException('所选文件超过大小限制。');
+  if (length != null && length > limit) throw ApiException('所选文件超过大小限制。');
   final builder = BytesBuilder(copy: false);
   await for (final bytes in file.readAsByteStream()) {
     if (builder.length + bytes.length > limit) {
-      throw const ApiException('所选文件超过大小限制。');
+      throw ApiException('所选文件超过大小限制。');
     }
     builder.add(bytes);
   }
@@ -88,9 +89,13 @@ class _ChatPageState extends State<ChatPage> {
       if (bottom) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && scroll.hasClients) {
+            if (MediaQuery.disableAnimationsOf(context)) {
+              scroll.jumpTo(scroll.position.maxScrollExtent);
+              return;
+            }
             scroll.animateTo(
               scroll.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 240),
+              duration: Duration(milliseconds: 240),
               curve: Curves.easeOut,
             );
           }
@@ -147,9 +152,13 @@ class _ChatPageState extends State<ChatPage> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && scroll.hasClients) {
+        if (MediaQuery.disableAnimationsOf(context)) {
+          scroll.jumpTo(scroll.position.maxScrollExtent);
+          return;
+        }
         scroll.animateTo(
           scroll.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
+          duration: Duration(milliseconds: 200),
           curve: Curves.easeOut,
         );
       }
@@ -172,30 +181,27 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           if (!c.online)
             Material(
-              color: const Color(0xfffff3df),
+              color: context.colors.tint,
               child: ListTile(
                 dense: true,
-                leading: const Icon(Icons.cloud_off_outlined, size: 18),
-                title: const Text(
-                  '连接已中断，已有记录仍可查看',
-                  style: TextStyle(fontSize: 12),
-                ),
+                leading: Icon(Icons.cloud_off_outlined, size: 18),
+                title: Text('连接已中断，已有记录仍可查看', style: TextStyle(fontSize: 12)),
                 trailing: IconButton(
                   onPressed: () => c.poll(force: true),
-                  icon: const Icon(Icons.refresh),
+                  icon: Icon(Icons.refresh),
                 ),
               ),
             ),
           Expanded(
             child: messages.isEmpty
-                ? const EmptyState(
+                ? EmptyState(
                     '和大肥鱼说句话吧',
                     '文字、表情、图片、语音，都可以。\n视频链接和歌名，直接发在聊天里。',
                     icon: Icons.chat_bubble_outline_rounded,
                   )
                 : ListView.builder(
                     controller: scroll,
-                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+                    padding: EdgeInsets.fromLTRB(14, 16, 14, 20),
                     itemCount: messages.length,
                     itemBuilder: (context, i) =>
                         MessageBubble(controller: c, message: messages[i]),
@@ -203,19 +209,22 @@ class _ChatPageState extends State<ChatPage> {
           ),
           if (job != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 5),
               child: Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 12,
                     height: 12,
                     child: CircularProgressIndicator(strokeWidth: 1.5),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       string(job['stage'], '大肥鱼正在输入中……'),
-                      style: const TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.colors.muted,
+                      ),
                     ),
                   ),
                 ],
@@ -226,11 +235,11 @@ class _ChatPageState extends State<ChatPage> {
             builder: (context, _) {
               final r = c.recorder;
               return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Color(0xffe8eef1))),
+                decoration: BoxDecoration(
+                  color: context.colors.surface,
+                  border: Border(top: BorderSide(color: context.colors.line)),
                 ),
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+                padding: EdgeInsets.fromLTRB(8, 8, 8, 6),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -242,7 +251,7 @@ class _ChatPageState extends State<ChatPage> {
                           children: pending
                               .map(
                                 (a) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
+                                  padding: EdgeInsets.only(right: 8),
                                   child: Stack(
                                     children: [
                                       ClipRRect(
@@ -264,7 +273,7 @@ class _ChatPageState extends State<ChatPage> {
                                           tooltip: '移除附件',
                                           onPressed: () =>
                                               setState(() => pending.remove(a)),
-                                          icon: const Icon(Icons.close),
+                                          icon: Icon(Icons.close),
                                         ),
                                       ),
                                     ],
@@ -276,7 +285,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                     if (r.recording || r.pending)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: EdgeInsets.only(bottom: 8),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -284,16 +293,20 @@ class _ChatPageState extends State<ChatPage> {
                               r.cancelling
                                   ? Icons.close_rounded
                                   : Icons.graphic_eq,
-                              color: r.cancelling ? Colors.red : blue,
+                              color: r.cancelling
+                                  ? context.colors.danger
+                                  : context.colors.accent,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Flexible(
                               child: Text(
                                 r.pending
                                     ? '正在等待麦克风授权……'
                                     : '${clock(Duration(seconds: r.seconds))}  ${r.cancelling ? '松开取消' : '松开发送，上滑取消'}',
                                 style: TextStyle(
-                                  color: r.cancelling ? Colors.red : blue,
+                                  color: r.cancelling
+                                      ? context.colors.danger
+                                      : context.colors.accent,
                                   fontSize: 13,
                                 ),
                               ),
@@ -315,7 +328,7 @@ class _ChatPageState extends State<ChatPage> {
                             mode == 'voice'
                                 ? Icons.keyboard_outlined
                                 : Icons.mic_none_rounded,
-                            color: muted,
+                            color: context.colors.muted,
                           ),
                         ),
                         Expanded(
@@ -346,15 +359,31 @@ class _ChatPageState extends State<ChatPage> {
                                     unawaited(r.end(cancel: true));
                                   },
                                   child: Semantics(
-                                    label: '按住说话',
+                                    label: r.recording ? '结束录音并发送' : '按住说话',
                                     button: true,
+                                    onTap: !c.canSend
+                                        ? null
+                                        : () {
+                                            if (r.recording || r.pending) {
+                                              unawaited(r.end());
+                                            } else {
+                                              unawaited(r.begin());
+                                            }
+                                          },
+                                    customSemanticsActions: {
+                                      if (r.recording || r.pending)
+                                        const CustomSemanticsAction(
+                                          label: '取消录音',
+                                        ): () =>
+                                            unawaited(r.end(cancel: true)),
+                                    },
                                     child: Container(
                                       height: 48,
                                       alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: r.cancelling
-                                            ? const Color(0xffffe8e5)
-                                            : const Color(0xfff1f5f7),
+                                            ? context.colors.dangerTint
+                                            : context.colors.field,
                                         borderRadius: BorderRadius.circular(14),
                                       ),
                                       child: Text(
@@ -367,7 +396,7 @@ class _ChatPageState extends State<ChatPage> {
                                             : pending.isNotEmpty
                                             ? '先发送待发附件'
                                             : '按住说话',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -376,21 +405,21 @@ class _ChatPageState extends State<ChatPage> {
                                   ),
                                 )
                               : TextField(
-                                  key: const Key('chat-input'),
+                                  key: Key('chat-input'),
                                   controller: editor,
                                   focusNode: focus,
                                   minLines: 1,
                                   maxLines: 5,
                                   textInputAction: TextInputAction.newline,
-                                  style: const TextStyle(fontSize: 16),
-                                  decoration: const InputDecoration(
+                                  style: TextStyle(fontSize: 16),
+                                  decoration: InputDecoration(
                                     hintText: '发消息…',
                                     contentPadding: EdgeInsets.symmetric(
                                       vertical: 12,
                                       horizontal: 12,
                                     ),
                                     filled: true,
-                                    fillColor: Color(0xfff6f8fa),
+                                    fillColor: context.colors.field,
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide.none,
                                       borderRadius: BorderRadius.all(
@@ -416,7 +445,9 @@ class _ChatPageState extends State<ChatPage> {
                             mode == 'emoji'
                                 ? Icons.keyboard_outlined
                                 : Icons.emoji_emotions_outlined,
-                            color: mode == 'emoji' ? blue : muted,
+                            color: mode == 'emoji'
+                                ? context.colors.accent
+                                : context.colors.muted,
                           ),
                         ),
                         IconButton(
@@ -424,7 +455,10 @@ class _ChatPageState extends State<ChatPage> {
                           onPressed: c.canSend && !r.recording && !r.pending
                               ? pickImages
                               : null,
-                          icon: const Icon(Icons.image_outlined, color: muted),
+                          icon: Icon(
+                            Icons.image_outlined,
+                            color: context.colors.muted,
+                          ),
                         ),
                         if (job != null)
                           IconButton.filled(
@@ -432,7 +466,7 @@ class _ChatPageState extends State<ChatPage> {
                             onPressed: c.busy
                                 ? null
                                 : () => c.action('/jobs/${job['id']}/cancel'),
-                            icon: const Icon(Icons.stop_rounded),
+                            icon: Icon(Icons.stop_rounded),
                           )
                         else if (mode != 'voice')
                           IconButton.filled(
@@ -444,19 +478,19 @@ class _ChatPageState extends State<ChatPage> {
                                 ? submit
                                 : null,
                             icon: c.busy
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 17,
                                     height: 17,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Icon(Icons.arrow_upward_rounded),
+                                : Icon(Icons.arrow_upward_rounded),
                           ),
                       ],
                     ),
                     if (c.busy)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(top: 4),
                         child: LinearProgressIndicator(minHeight: 1),
                       ),
@@ -501,9 +535,9 @@ class _ChatPageState extends State<ChatPage> {
     ];
     final items = objects(c.data['stickers']);
     return Container(
-      key: const Key('inline-stickers'),
+      key: Key('inline-stickers'),
       height: height,
-      color: const Color(0xfff3f7fa),
+      color: context.colors.paper,
       child: Column(
         children: [
           Row(
@@ -514,18 +548,20 @@ class _ChatPageState extends State<ChatPage> {
                   child: Text(
                     tab,
                     style: TextStyle(
-                      color: tab == stickerTab ? blue : muted,
+                      color: tab == stickerTab
+                          ? context.colors.accent
+                          : context.colors.muted,
                       fontWeight: tab == stickerTab
                           ? FontWeight.w700
                           : FontWeight.normal,
                     ),
                   ),
                 ),
-              const Spacer(),
+              Spacer(),
               TextButton.icon(
                 onPressed: c.canSend ? () => pickImages(sticker: true) : null,
-                icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
-                label: const Text('本机'),
+                icon: Icon(Icons.add_photo_alternate_outlined, size: 18),
+                label: Text('本机'),
               ),
             ],
           ),
@@ -551,28 +587,27 @@ class _ChatPageState extends State<ChatPage> {
                               );
                             },
                             child: Center(
-                              child: Text(
-                                v,
-                                style: const TextStyle(fontSize: 26),
-                              ),
+                              child: Text(v, style: TextStyle(fontSize: 26)),
                             ),
                           ),
                         )
                         .toList(),
                   )
                 : items.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       '收藏夹还空着，大肥鱼会慢慢去找。',
-                      style: TextStyle(color: muted, fontSize: 13),
+                      style: TextStyle(
+                        color: context.colors.muted,
+                        fontSize: 13,
+                      ),
                     ),
                   )
                 : GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          mainAxisExtent: 87,
-                        ),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      mainAxisExtent: 87,
+                    ),
                     itemCount: items.length,
                     itemBuilder: (context, i) {
                       final s = items[i];
@@ -593,7 +628,7 @@ class _ChatPageState extends State<ChatPage> {
                                 }
                               },
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: EdgeInsets.all(8),
                           child: RemotePicture(
                             controller: c,
                             url: string(s['imageUrl']),
@@ -630,16 +665,17 @@ class MessageBubble extends StatelessWidget {
         attachments.any((a) => a['kind'] == 'audio');
     final waiting = message['status'] == 'waiting';
     final text = string(message['content']);
+    final textOnly = mine && attachments.isEmpty && sticker.isEmpty;
     final max = MediaQuery.sizeOf(context).width * .75;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 22),
+      padding: EdgeInsets.only(bottom: 22),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: mine
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: [
-          if (!mine) ...[const Avatar(size: 34), const SizedBox(width: 8)],
+          if (!mine) ...[Avatar(size: 34), SizedBox(width: 8)],
           Flexible(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: max),
@@ -656,40 +692,56 @@ class MessageBubble extends StatelessWidget {
                             controller.inform('文字已复制。');
                           },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 15,
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: mine ? const Color(0xffe7f2fa) : Colors.white,
-                        borderRadius: BorderRadius.circular(17),
-                        border: Border.all(color: const Color(0xffe5edf2)),
+                        color: textOnly
+                            ? context.colors.accent
+                            : mine
+                            ? context.colors.tint
+                            : context.colors.surface,
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(20),
+                          topRight: const Radius.circular(20),
+                          bottomLeft: Radius.circular(mine ? 20 : 6),
+                          bottomRight: Radius.circular(mine ? 6 : 20),
+                        ),
+                        border: Border.all(
+                          color: textOnly
+                              ? context.colors.accent
+                              : context.colors.line,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (waiting)
-                            const Text(
+                            Text(
                               '正在输入中……',
-                              style: TextStyle(color: muted),
+                              style: TextStyle(color: context.colors.muted),
                             )
                           else if (message['status'] != 'complete')
                             Text(
                               string(message['error'], '这条回复已中断。'),
-                              style: const TextStyle(color: muted),
+                              style: TextStyle(color: context.colors.muted),
                             )
                           else if (text.isNotEmpty && !voice)
                             SelectableText(
                               text,
-                              style: const TextStyle(
-                                height: 1.65,
-                                fontSize: 16,
+                              style: TextStyle(
+                                height: 1.6,
+                                fontSize: 17,
+                                color: textOnly
+                                    ? context.colors.onAccent
+                                    : context.colors.ink,
                               ),
                             ),
                           for (final item in attachments)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4),
+                              padding: EdgeInsets.only(top: 4),
                               child: item['kind'] == 'audio'
                                   ? VoiceBubble(
                                       controller: controller,
@@ -699,23 +751,10 @@ class MessageBubble extends StatelessWidget {
                                           : string(message['transcript']),
                                     )
                                   : InkWell(
-                                      onTap: () => showDialog(
-                                        context: context,
-                                        builder: (_) => Dialog(
-                                          child: SizedBox(
-                                            height:
-                                                MediaQuery.sizeOf(
-                                                  context,
-                                                ).height *
-                                                .7,
-                                            child: InteractiveViewer(
-                                              child: RemotePicture(
-                                                controller: controller,
-                                                url: string(item['url']),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                      onTap: () => showImagePreview(
+                                        context,
+                                        controller,
+                                        string(item['url']),
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
@@ -732,7 +771,7 @@ class MessageBubble extends StatelessWidget {
                           if (sticker.isNotEmpty &&
                               sticker.first['available'] == true)
                             Padding(
-                              padding: const EdgeInsets.only(top: 8),
+                              padding: EdgeInsets.only(top: 8),
                               child: RemotePicture(
                                 controller: controller,
                                 url: string(sticker.first['imageUrl']),
@@ -742,18 +781,21 @@ class MessageBubble extends StatelessWidget {
                               ),
                             ),
                           if (numeric(message['missingAttachments']) > 0)
-                            const Text(
+                            Text(
                               '部分附件已不可用',
-                              style: TextStyle(fontSize: 12, color: muted),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.colors.muted,
+                              ),
                             ),
                           if (string(message['voiceNote']).isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(top: 8),
+                              padding: EdgeInsets.only(top: 8),
                               child: Text(
                                 string(message['voiceNote']),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: muted,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.colors.muted,
                                 ),
                               ),
                             ),
@@ -761,13 +803,16 @@ class MessageBubble extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         timeLabel(message['createdAt']),
-                        style: const TextStyle(fontSize: 10, color: muted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.colors.muted,
+                        ),
                       ),
                       if (!mine &&
                           message['status'] == 'complete' &&
@@ -787,9 +832,9 @@ class MessageBubble extends StatelessWidget {
                                     await controller.playAudio(item);
                                   }
                                 },
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.volume_up_outlined,
-                            color: muted,
+                            color: context.colors.muted,
                           ),
                         ),
                       if (RegExp(r'https?://[^\s]+').hasMatch(text))
@@ -802,7 +847,10 @@ class MessageBubble extends StatelessWidget {
                               r'https?://[^\s]+',
                             ).firstMatch(text)!.group(0)!,
                           ),
-                          icon: const Icon(Icons.open_in_new, color: muted),
+                          icon: Icon(
+                            Icons.open_in_new,
+                            color: context.colors.muted,
+                          ),
                         ),
                     ],
                   ),
@@ -826,10 +874,10 @@ Future<void> conversations(BuildContext context, CompanionController c) =>
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       '聊过的日常',
                       style: TextStyle(
@@ -847,8 +895,8 @@ Future<void> conversations(BuildContext context, CompanionController c) =>
                               Navigator.pop(context);
                             }
                           },
-                    icon: const Icon(Icons.add),
-                    label: const Text('新聊天'),
+                    icon: Icon(Icons.add),
+                    label: Text('新聊天'),
                   ),
                 ],
               ),
@@ -859,7 +907,7 @@ Future<void> conversations(BuildContext context, CompanionController c) =>
                     .map(
                       (item) => ListTile(
                         selected: item['id'] == c.data['activeConversation'],
-                        leading: const Icon(Icons.chat_bubble_outline),
+                        leading: Icon(Icons.chat_bubble_outline),
                         title: Text(
                           string(item['title']),
                           maxLines: 1,
@@ -876,7 +924,7 @@ Future<void> conversations(BuildContext context, CompanionController c) =>
                         },
                         trailing: IconButton(
                           tooltip: '删除聊天',
-                          icon: const Icon(Icons.delete_outline, size: 20),
+                          icon: Icon(Icons.delete_outline, size: 20),
                           onPressed: () async {
                             if (await confirm(
                               context,

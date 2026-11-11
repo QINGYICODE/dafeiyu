@@ -4,10 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'api.dart';
 import 'controller.dart';
 
-const ink = Color(0xff293b47),
-    muted = Color(0xff8194a0),
-    blue = Color(0xff4387b2),
-    paper = Color(0xfff7f9fa);
+import 'design.dart';
+export 'design.dart';
+
 const platformNames = <String, String>{
   'bilibili': 'B 站',
   'douyin': '抖音',
@@ -100,15 +99,18 @@ class _RemotePictureState extends State<RemotePicture> {
             semanticLabel: widget.label,
             gaplessPlayback: true,
             errorBuilder: (_, _, _) =>
-                const Icon(Icons.broken_image_outlined, color: muted),
+                Icon(Icons.broken_image_outlined, color: context.colors.muted),
           );
         }
         if (snapshot.hasError) {
-          return const Center(
-            child: Icon(Icons.image_not_supported_outlined, color: muted),
+          return Center(
+            child: Icon(
+              Icons.image_not_supported_outlined,
+              color: context.colors.muted,
+            ),
           );
         }
-        return const Center(
+        return Center(
           child: SizedBox(
             width: 20,
             height: 20,
@@ -132,9 +134,9 @@ class Panel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: padding,
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: context.colors.surface,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: const Color(0xffe8eef1)),
+      border: Border.all(color: context.colors.line),
     ),
     child: child,
   );
@@ -146,34 +148,31 @@ class SectionHeading extends StatelessWidget {
   const SectionHeading(this.title, this.subtitle, this.icon, {super.key});
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
+    padding: EdgeInsets.only(bottom: 16),
     child: Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xffe9f3fa),
+            color: context.colors.tint,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: blue, size: 21),
+          child: Icon(icon, color: context.colors.accent, size: 20),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
               if (subtitle.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 12, color: muted),
+                  style: TextStyle(fontSize: 12, color: context.colors.muted),
                 ),
               ],
             ],
@@ -196,22 +195,26 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 42, horizontal: 24),
+      padding: EdgeInsets.symmetric(vertical: 42, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 44, color: blue.withValues(alpha: .5)),
-          const SizedBox(height: 18),
+          Icon(
+            icon,
+            size: 44,
+            color: context.colors.accent.withValues(alpha: .5),
+          ),
+          SizedBox(height: 18),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Text(
             detail,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: muted, height: 1.7),
+            style: TextStyle(color: context.colors.muted, height: 1.7),
           ),
         ],
       ),
@@ -233,7 +236,7 @@ Future<bool> confirm(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text('取消'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
@@ -268,31 +271,33 @@ class VoiceBubble extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Material(
-          color: const Color(0xffeaf4fb),
+          color: context.colors.tint,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
             onTap: () => controller.playAudio(attachment),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     active ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: blue,
+                    color: context.colors.accent,
                     size: 30,
                   ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.graphic_eq, color: blue),
-                  const SizedBox(width: 10),
-                  Text(
-                    current && controller.position > Duration.zero
-                        ? '${clock(controller.position)} / ${clock(duration)}'
-                        : '${duration.inSeconds}″',
-                    style: const TextStyle(
-                      color: blue,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(width: 6),
+                  Icon(Icons.graphic_eq, color: context.colors.accent),
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      current && controller.position > Duration.zero
+                          ? '${clock(controller.position)} / ${clock(duration)}'
+                          : '${duration.inSeconds}″',
+                      style: TextStyle(
+                        color: context.colors.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -305,18 +310,18 @@ class VoiceBubble extends StatelessWidget {
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(bottom: 8),
+              childrenPadding: EdgeInsets.only(bottom: 8),
               dense: true,
-              title: const Text(
+              title: Text(
                 '查看文字',
-                style: TextStyle(color: muted, fontSize: 12),
+                style: TextStyle(color: context.colors.muted, fontSize: 12),
               ),
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
                   child: SelectableText(
                     text,
-                    style: const TextStyle(fontSize: 14, height: 1.6),
+                    style: TextStyle(fontSize: 14, height: 1.6),
                   ),
                 ),
               ],
@@ -326,3 +331,51 @@ class VoiceBubble extends StatelessWidget {
     );
   }
 }
+
+Future<void> showImagePreview(
+  BuildContext context,
+  CompanionController controller,
+  String url,
+) => showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  builder: (context) => FractionallySizedBox(
+    heightFactor: .90,
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '图片预览',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              IconButton(
+                tooltip: '关闭预览',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: InteractiveViewer(
+            minScale: .8,
+            maxScale: 5,
+            child: Center(
+              child: RemotePicture(
+                controller: controller,
+                url: url,
+                label: '聊天图片',
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+);

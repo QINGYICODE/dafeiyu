@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import os
+import re
 from pathlib import Path
 import shutil
 import ssl
@@ -76,8 +77,12 @@ finally:
         certificate.unlink(missing_ok=True)
     else:
         certificate.write_bytes(previous)
+version_match = re.search(r'^version:\s*(\d+\.\d+\.\d+)(?:\+\d+)?\s*$', (mobile / 'pubspec.yaml').read_text(), re.MULTILINE)
+if not version_match:
+    raise SystemExit('pubspec.yaml must declare a semantic application version.')
+version = version_match.group(1)
 source = mobile / 'build/app/outputs/flutter-apk/app-release.apk'
-output = root / 'releases/dafeiyu-flutter-v0.2.0-preview.apk'
+output = root / f'releases/dafeiyu-flutter-v{version}-preview.apk'
 output.parent.mkdir(parents=True, exist_ok=True)
 shutil.copy2(source, output)
 checksum = hashlib.sha256(output.read_bytes()).hexdigest()
@@ -93,7 +98,7 @@ if args.publish_download:
         '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         '<title>大肥鱼 Android</title><h1>大肥鱼 · Flutter Android</h1>'
-        f'<p><a href="/api/downloads/{output.name}">下载 Android APK · 0.2.0</a></p>'
+        f'<p><a href="/api/downloads/{output.name}">下载 Android APK · {version}</a></p>'
         f'<p><a href="/api/downloads/{checksum_file.name}">SHA-256 校验文件</a></p></html>')
 print(f'APK: {output}')
 print(f'SHA-256: {checksum}')
