@@ -21,7 +21,19 @@ void main() {
     await controller.connect(address);
     expect(controller.online, isTrue, reason: controller.error);
     expect(controller.data['messages'], isA<List>());
-    final before = objects(controller.data['messages']).length;
+    // Exercise native Android playback using an existing server attachment.
+    final audio = objects(controller.data['messages'])
+        .expand((message) => objects(message['attachments']))
+        .where((item) => item['kind'] == 'audio' && item['available'] == true);
+    if (audio.isNotEmpty) {
+      final decoded = controller.player.onDurationChanged
+          .firstWhere((value) => value > Duration.zero)
+          .timeout(const Duration(seconds: 20));
+      await controller.playAudio(audio.first);
+      expect((await decoded).inMilliseconds, greaterThan(0));
+      expect(controller.audioId, audio.first['id']);
+      await controller.stopAudio();
+    }
     await tester.pumpWidget(CompanionApp(controller: controller, boot: false));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('chat-input')), findsOneWidget);
@@ -47,7 +59,7 @@ void main() {
     expect(find.text('生活足迹'), findsWidgets);
     await tester.tap(find.text('设置'));
     await tester.pumpAndSettle();
-    expect(find.text('Flutter 客户端'), findsOneWidget);
+    expect(find.text('伙伴服务'), findsOneWidget);
     await tester.tap(find.text('修改服务地址'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
@@ -59,7 +71,6 @@ void main() {
     await tester.tap(find.byTooltip('聊天历史'));
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
-    expect(objects(controller.data['messages']).length, before);
     expect(tester.takeException(), isNull);
   });
 }

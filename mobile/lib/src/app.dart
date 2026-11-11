@@ -369,7 +369,7 @@ class ConnectionPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Flutter 客户端\n连接你自己的服务，沿用原来的聊天与记忆。',
+                    '连接你自己的服务，沿用原来的聊天与记忆。',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: muted, fontSize: 12, height: 1.8),
                   ),

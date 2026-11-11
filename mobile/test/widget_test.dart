@@ -51,7 +51,7 @@ void main() {
       expect(find.text('保存记忆'), findsNothing);
       await tester.tap(find.text('设置'));
       await tester.pumpAndSettle();
-      expect(find.text('Flutter 客户端'), findsOneWidget);
+      expect(find.text('伙伴服务'), findsOneWidget);
       expect(find.text('修改服务地址'), findsOneWidget);
       await tester.tap(find.text('修改服务地址'));
       await tester.pumpAndSettle();

@@ -399,32 +399,27 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 8),
               const Text('性格、称呼和记忆，从相处中自然形成。', style: TextStyle(color: muted)),
               const SizedBox(height: 20),
-              section(
-                'Flutter 客户端',
-                '所有页面由 Flutter 控件绘制',
-                Icons.phone_android,
-                [
-                  Text(
-                    c.server,
-                    style: const TextStyle(color: muted, fontSize: 13),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    '手机与网页版共用伙伴服务。聊天、记忆和冲浪由服务保存和运行，厂商密钥留在服务端。',
-                    style: TextStyle(fontSize: 13, height: 1.6),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => connectionDialog(context, c),
-                    icon: const Icon(Icons.dns_outlined),
-                    label: const Text('修改服务地址'),
-                  ),
-                  const Text(
-                    'Flutter 0.2.0 · Android',
-                    style: TextStyle(fontSize: 11, color: muted),
-                  ),
-                ],
-              ),
+              section('伙伴服务', '换一台手机，也能接着聊。', Icons.phone_android, [
+                Text(
+                  c.server,
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  '手机与网页版共用伙伴服务。聊天、记忆和冲浪由服务保存和运行，厂商密钥留在服务端。',
+                  style: TextStyle(fontSize: 13, height: 1.6),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () => connectionDialog(context, c),
+                  icon: const Icon(Icons.dns_outlined),
+                  label: const Text('修改服务地址'),
+                ),
+                const Text(
+                  'Flutter 0.2.0 · Android',
+                  style: TextStyle(fontSize: 11, color: muted),
+                ),
+              ]),
               BilibiliPanel(controller: c),
               const SizedBox(height: 18),
               section(
