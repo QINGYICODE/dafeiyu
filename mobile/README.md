@@ -39,3 +39,9 @@ flutter test integration_test/native_smoke_test.dart -d <device-id> \
 集成测试使用真实服务读取状态和媒体，不发送消息或修改服务偏好。麦克风权限、真实录音音质和厂商转写结果还需有麦克风的手机验收。
 
 官方参考：[Android 构建](https://docs.flutter.dev/deployment/android)、[Flutter 集成测试](https://docs.flutter.dev/testing/integration-tests)。
+
+## 验证记录 · 2026-11-11
+
+Flutter 静态分析通过，16 项单元/界面测试通过，覆盖小屏与横屏布局、内联表情、重试幂等、离线保留会话、Android content URI 和录音权限/取消竞态。Android 15 模拟器集成测试已连接真实 HTTPS 服务，验证原生播放器播放历史语音、表情输入、语音输入切换、记忆、生活、设置弹窗及聊天历史。测试读取现有内容，没有发送测试聊天。
+
+模拟器未接入真实麦克风；录音音质、真实厂商转写结果及不同品牌手机的权限行为需在手机上继续验收。网页版与服务端的 86 项测试通过。
