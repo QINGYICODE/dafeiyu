@@ -9,7 +9,7 @@ import { Speech } from '../speech.mjs';
 import { Voice, voiceDefaults } from '../voice.mjs';
 
 function fixture(t, options = {}) {
-  const values = new Map([['settings', {cloudSpeech:cloudSpeechDefaults()}]]);
+  const values = new Map([['settings', {cloudSpeech:{...cloudSpeechDefaults(),ttsModel:'qwen-audio-3.1-tts-flash',voiceId:'qiaoxiaojiao_v3.1'}}]]);
   const store = { get:key=>values.get(key), set:(key,value)=>values.set(key,value) };
   const calls = [];
   const cloud = new CloudSpeech(store, {fetcher:async(url, init)=>{calls.push({url,init,body:init?.body ? JSON.parse(init.body) : null});return options.fetcher ? options.fetcher(url,init) : Response.json({choices:[{message:{content:'大肥鱼，今天去B站看看。'}}],id:'request-test'});}, ...options});

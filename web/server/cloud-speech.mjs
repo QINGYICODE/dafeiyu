@@ -6,10 +6,11 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { AppError, boundedBody, publicUrl, text } from './network.mjs';
+import { cosyvoiceAudio } from './cosyvoice.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const cloneEndpoint = '/api/v1/services/audio/tts/customization';
-export const cloudSpeechDefaults = () => ({ region: 'beijing', workspaceId: '', asrEnabled: false, ttsEnabled: false, asrModel: 'qwen3-asr-flash', ttsModel: 'qwen-audio-3.1-tts-flash', voiceId: 'qiaoxiaojiao_v3.1', hotwords: '大肥鱼、可莉、DeepSeek、B站、抖音、小红书', language: 'auto' });
+export const cloudSpeechDefaults = () => ({ region: 'beijing', workspaceId: '', asrEnabled: false, ttsEnabled: false, asrModel: 'qwen3-asr-flash', ttsModel: 'cosyvoice-v3-flash', voiceId: 'longhuhu_v3', hotwords: '大肥鱼、可莉、DeepSeek、B站、抖音、小红书', language: 'auto' });
 export function cloudSpeechSettings(input, previous = cloudSpeechDefaults()) {
   const next = { ...previous };
   for (const key of ['asrEnabled', 'ttsEnabled']) if (typeof input[key] === 'boolean') next[key] = input[key];
@@ -22,7 +23,8 @@ export function cloudSpeechSettings(input, previous = cloudSpeechDefaults()) {
   if (input.hotwords !== undefined) next.hotwords = text(input.hotwords, 800);
   if (['auto', 'zh', 'yue', 'en'].includes(input.language)) next.language = input.language;
   if (!/^qwen(?:3-asr-flash|3-asr-flash-\d[\w-]*|-(?:audio-)[\w.-]+asr[\w.-]*)$/.test(next.asrModel)) throw new AppError('请选择受支持的千问短语音识别模型。');
-  if (!/^qwen-audio-[\d.]+-tts-(?:flash|plus)$/.test(next.ttsModel)) throw new AppError('声音合成请选择 Qwen-Audio-TTS flash 或 plus 模型。');
+  if (!/^qwen-audio-[\d.]+-tts-(?:flash|plus)$/.test(next.ttsModel) && next.ttsModel !== 'cosyvoice-v3-flash') throw new AppError('请选择受支持的 CosyVoice 或 Qwen-Audio-TTS 合成模型。');
+  if (next.voiceId === 'longhuhu_v3' && next.ttsModel !== 'cosyvoice-v3-flash') throw new AppError('龙呼呼 longhuhu_v3 请搭配 cosyvoice-v3-flash 模型。');
   return next;
 }
 
@@ -126,9 +128,19 @@ export class CloudSpeech {
     const clone = this.store.get('cloudVoice');
     if (options.voiceId === clone?.voiceId && (clone.status !== 'OK' || clone.model !== options.ttsModel || clone.account !== this.account(options))) throw new AppError('复刻音色尚未就绪，或与当前模型、账号地域不匹配。', 409, 'VOICE_NOT_READY');
     const cloned = options.voiceId === clone?.voiceId;
-    const result = await this.request('/api/v1/services/audio/tts/SpeechSynthesizer', { model: options.ttsModel, input: { text: value, voice: options.voiceId, format: 'wav', sample_rate: 24000, rate: 1 + preferences.rate / 100, ...(cloned ? {} : { instruction: '请用中文，轻松自然，像朋友聊天，避免播音腔。' }) } }, signal, options);
-    if (!result.output?.audio?.url) throw new AppError('百炼没有返回可播放的语音。', 502);
-    const data = await this.download(result.output.audio.url, signal);
+    let data;
+    if (options.ttsModel === 'cosyvoice-v3-flash') {
+      if (!this.key()) throw new AppError('尚未配置 QWEN_API_KEY 或 DASHSCOPE_API_KEY。', 503, 'BAILIAN_KEY_MISSING');
+      if (this.controllers.size >= 4) throw new AppError('还有语音正在处理，请稍候。', 429, 'SPEECH_BUSY');
+      const controller = new AbortController(); this.controllers.add(controller);
+      const combined = AbortSignal.any([controller.signal, AbortSignal.timeout(60000), ...(signal ? [signal] : [])]);
+      try { data = await cosyvoiceAudio({ url: this.base(options).replace(/^https:/, 'wss:') + '/api-ws/v1/inference', key: this.key(), model: options.ttsModel, voice: options.voiceId, rate: 1 + preferences.rate / 100, value, signal: combined }); }
+      finally { this.controllers.delete(controller); }
+    } else {
+      const result = await this.request('/api/v1/services/audio/tts/SpeechSynthesizer', { model: options.ttsModel, input: { text: value, voice: options.voiceId, format: 'wav', sample_rate: 24000, rate: 1 + preferences.rate / 100, ...(cloned ? {} : { instruction: '请用中文，轻松自然，像朋友聊天，避免播音腔。' }) } }, signal, options);
+      if (!result.output?.audio?.url) throw new AppError('百炼没有返回可播放的语音。', 502);
+      data = await this.download(result.output.audio.url, signal);
+    }
     const directory = await mkdtemp(path.join(os.tmpdir(), 'dafeiyu-cloud-voice-'));
     try { const filename = path.join(directory, 'voice'); await writeFile(filename, data, { mode: 0o600 }); const checked = await this.normalize(filename, signal); return { data, duration: checked.duration, engine: 'aliyun-bailian', model: options.ttsModel }; }
     finally { await rm(directory, { recursive: true, force: true }); }
@@ -142,6 +154,7 @@ export class CloudSpeech {
     catch (error) { this.store.set('cloudSpeechTest', { ok: false, at: new Date().toISOString(), account: this.account() }); throw error; }
   }
   createClone(input = {}) {
+    if (this.options().ttsModel === 'cosyvoice-v3-flash') throw new AppError('当前使用系统音色，无需声音复刻。', 409);
     if (this.enrollment) throw new AppError('音色正在创建，请稍候。', 409);
     const previous = this.store.get('cloudVoice');
     if (previous && previous.account === this.account() && previous.model === this.options().ttsModel && !input.replace) return this.queryClone();

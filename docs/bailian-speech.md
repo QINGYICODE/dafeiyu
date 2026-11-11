@@ -14,7 +14,7 @@
 
 ## 设置与验证
 
-打开「连接与偏好 → 百炼语音服务」，选择识别和发声开关、地域、模型、音色 ID 后保存。识别默认 `qwen3-asr-flash`，合成默认 `qwen-audio-3.1-tts-flash`。
+打开「连接与偏好 → 百炼语音服务」，选择识别和发声开关、地域、模型、音色 ID 后保存。识别默认 `qwen3-asr-flash`，合成默认 `cosyvoice-v3-flash`，系统音色为龙呼呼 `longhuhu_v3`（无需声音复刻）。
 
 - 自动语言识别适用于中英混说，也可以指定普通话、粤语或英语。
 - 常用词只提供实体词汇提示，不用于改变聊天性格；不保证每次识别准确。
@@ -47,3 +47,7 @@
 ## 复刻音色的语气修正
 
 对已验证的复刻音色，合成请求省略通用的“轻松自然、像朋友聊天”指令，避免给参考声音额外叠加统一表达方式。系统音色仍可使用通用聊天语气。这是减少干预的修正，不代表相似度已经提高；是否保留可莉的咬字、尾音和节奏，需要对同一句话实际试听。比较音频和参数记录见 `artifacts/web/bailian/style-comparison/`。
+
+龙呼呼通过 CosyVoice WebSocket 接口合成，后端等待完整音频并验证后再发送语音气泡。不会把分段音频推给聊天界面。`longhuhu_v3` 不可与 Qwen Audio 3.1 模型混用。已有复刻音色不再用于当前发声，历史语音文件保留原来的声音。
+
+官方说明：[CosyVoice 音色列表](https://help.aliyun.com/zh/model-studio/cosyvoice-voice-list)、[WebSocket 接入](https://help.aliyun.com/zh/model-studio/cosyvoice-websocket-api)。
