@@ -1,0 +1,28 @@
+name: dafeiyu
+description: 大肥鱼 Flutter 智能伙伴客户端。
+publish_to: none
+version: 0.2.0+2
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  audioplayers: 6.5.1
+  record: 6.2.1
+  file_picker: 13.3.3
+  shared_preferences: 2.5.6
+  path_provider: 2.1.6
+  url_launcher: 6.3.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/characters/
+    - assets/trust/

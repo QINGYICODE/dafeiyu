@@ -37,11 +37,21 @@ jobs:
           packages: platform-tools
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v5
-      - run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
-      - run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
-        working-directory: android
+      - name: Install Flutter 3.41.9
+        run: |
+          git clone --depth 1 --branch 3.41.9 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: sdkmanager 'platforms;android-35' 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358'
+      - run: flutter pub get
+        working-directory: mobile
+      - run: flutter analyze
+        working-directory: mobile
+      - run: flutter test
+        working-directory: mobile
+      - run: flutter build apk --release
+        working-directory: mobile
       - uses: actions/upload-artifact@v4
         with:
-          name: dafeiyu-android-preview
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: dafeiyu-flutter-preview
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error

@@ -1,6 +1,6 @@
 # 大肥鱼 · AI 智能伙伴
 
-一个会聊天、保留记忆、拥有心情与兴趣的 AI 伙伴。网页版原型已确定，Android 首版复用同一套界面，通过 HTTPS 连接伙伴服务。
+一个会聊天、保留记忆、拥有心情与兴趣的 AI 伙伴。网页版原型已确定，Android 应用使用 Flutter 独立实现界面，通过 HTTPS 连接同一伙伴服务。
 
 ## 当前功能
 
@@ -35,24 +35,24 @@ npm start
 
 ## Android APK
 
-Android 客户端位于 [android/](android/README.md)，包名 `com.qingyicode.dafeiyu`，最低支持 Android 8.0。
+Flutter 客户端位于 [mobile/](mobile/README.md)，聊天、表情、录音、图片、记忆、冲浪及设置均由 Flutter 控件实现。包名 `com.qingyicode.dafeiyu`，最低支持 Android 8.0，版本 `0.2.0+2`。
 
-配置 JDK 17/21、Android SDK 和 `ANDROID_HOME` 后：
+配置 Flutter 3.41.9、完整 JDK 17/21、Android SDK 和 `ANDROID_HOME` 后：
 
 ```bash
 python3 scripts/build-android.py --server-url https://your-companion.example.com
 ```
 
-构建会执行 Android 单元测试、lint 和打包，输出开发签名 APK 与 SHA-256 到本机 `releases/`。未指定服务地址的 APK 可在首次打开时填写地址。已连接时可在「连接与偏好 → 安卓客户端」修改。
+构建执行 Flutter 静态分析、单元/界面测试与 release 编译，输出开发签名的预览 APK 和 SHA-256 到 `releases/`。未指定服务地址时，首次打开填写；已连接时在「设置 → 修改服务地址」修改。服务端需要保持在线。
 
-GitHub Actions 会自动检查网页版并构建通用 Android 预览包，可从仓库 **Actions → Verify and build Android preview → Artifacts** 下载。CI 包不含个人服务地址、自签证书或厂商凭据。自签证书的域名限定配置及安装说明见 [Android README](android/README.md)。
+GitHub Actions 自动检查网页版与 Flutter，生成通用 Flutter APK，可从 **Actions → Verify and build Android preview → Artifacts** 下载。CI 包不含个人地址、证书或厂商凭据。构建、证书及安装说明见 [Flutter README](mobile/README.md)。
 
 ## 项目结构
 
 | 目录 | 内容 |
 | --- | --- |
 | `web/` | React 界面、Node 伙伴服务与测试 |
-| `android/` | 原生 WebView 客户端、系统权限与文件适配 |
+| `mobile/` | Flutter Android 应用、原生录音/播放/文件选择和测试 |
 | `scripts/` | Android 构建与平台验证脚本 |
 | `docs/` | 产品、架构和各功能实现说明 |
 | `prototype/` | 历史交互演示，行为不代表当前正式实现 |
@@ -67,8 +67,10 @@ npm run typecheck
 npm test
 npm run build
 
-cd ../android
-./gradlew testDebugUnitTest lintDebug assembleDebug
+cd ../mobile
+flutter analyze
+flutter test
+flutter build apk --release
 ```
 
-真实厂商、浏览器、麦克风和模拟器验证需要对应的本机环境。参考 [自主伙伴方案](docs/autonomy-plan.md)、[网页版说明](web/README.md)、[B 站接入](docs/bilibili-account.md)、[网页可行性记录](docs/platform-browsing-verification.md) 和 [Android 说明](android/README.md)。本机截图与语音验证产物不随源码发布。
+真实厂商、浏览器、麦克风和模拟器验证需要对应的本机环境。参考 [自主伙伴方案](docs/autonomy-plan.md)、[网页版说明](web/README.md)、[B 站接入](docs/bilibili-account.md)、[网页可行性记录](docs/platform-browsing-verification.md) 和 [Flutter 说明](mobile/README.md)。本机截图与语音验证产物不随源码发布。
