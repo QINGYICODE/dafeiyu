@@ -21,6 +21,8 @@
 python3 scripts/build-android.py --server-url https://your-companion.example.com --publish-download
 ```
 
+安装包通过 `/api/downloads/dafeiyu-flutter-v0.2.0-preview.apk` 提供下载，支持断点续传；文件保留在 `releases/`，避免静态资源的 25 MB 大小上限。`--publish-download` 额外生成轻量下载页。
+
 脚本执行 pub get、静态分析、单元/界面测试和 release APK 构建，输出 `releases/dafeiyu-flutter-v0.2.0-preview.apk` 与 SHA-256。APK 包含 ARMv7、ARM64 和 x86_64。预览包使用开发签名，可直接安装；商店发行前需配置私人发行签名。
 
 不传服务地址时，首次启动填写 HTTPS 服务地址；已连接时在「设置 → 修改服务地址」修改。它应指向对外的 5173 前端代理入口，而非仅供本机使用的 3101。
@@ -44,4 +46,4 @@ flutter test integration_test/native_smoke_test.dart -d <device-id> \
 
 Flutter 静态分析通过，16 项单元/界面测试通过，覆盖小屏与横屏布局、内联表情、重试幂等、离线保留会话、Android content URI 和录音权限/取消竞态。Android 15 模拟器集成测试已连接真实 HTTPS 服务，验证原生播放器播放历史语音、表情输入、语音输入切换、记忆、生活、设置弹窗及聊天历史。测试读取现有内容，没有发送测试聊天。
 
-模拟器未接入真实麦克风；录音音质、真实厂商转写结果及不同品牌手机的权限行为需在手机上继续验收。网页版与服务端的 86 项测试通过。
+模拟器未接入真实麦克风；录音音质、真实厂商转写结果及不同品牌手机的权限行为需在手机上继续验收。网页版与服务端的 89 项测试通过，包括安装包下载的文件边界和 Range 请求。

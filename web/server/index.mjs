@@ -5,6 +5,7 @@ import path from 'node:path';
 import { Companion } from './companion.mjs';
 import { AppError, text } from './network.mjs';
 import { resolveEnvironmentKeys } from './environment.mjs';
+import { sendAndroidDownload } from './downloads.mjs';
 
 async function bytes(request, limit = 12 * 1024 * 1024) {
   if (Number(request.headers['content-length'] || 0) > limit) throw new AppError('附件需小于 12 MB。', 413);
@@ -31,6 +32,7 @@ export function createServer(companion, port = 3101) {
       const host = String(request.headers.host || '').split(':')[0];
       if (!['localhost', '127.0.0.1'].includes(host)) throw new AppError('仅允许本机访问。', 403);
       const url = new URL(request.url, 'http://localhost'); const route = url.pathname; const method = request.method;
+      if (route.startsWith('/api/downloads/') && await sendAndroidDownload(request, response, route)) return;
       if (method === 'GET' && route === '/api/health') return json({ ok: true, version: '0.7.1', modelConfigured: Boolean(companion.store.getKey()), browser: 'local', time: new Date().toISOString() });
       if (method === 'GET' && route === '/api/state') return json(companion.state());
       if (method === 'POST' && route === '/api/speech/test') return json(await companion.cloudSpeech.test((await body(request)).mediaId));

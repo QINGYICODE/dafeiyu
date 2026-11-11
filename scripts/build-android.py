@@ -13,7 +13,7 @@ root = Path(__file__).resolve().parent.parent
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--server-url', default=os.environ.get('DAFEIYU_SERVER_URL', ''))
 parser.add_argument('--trusted-certificate', default=os.environ.get('DAFEIYU_TRUSTED_CERTIFICATE', ''), help='Optional public PEM certificate, trusted only for the server hostname.')
-parser.add_argument('--publish-download', action='store_true')
+parser.add_argument('--publish-download', action='store_true', help='Publish a small download page; the API streams the APK from releases/.')
 parser.add_argument('--skip-checks', action='store_true', help='Only when analyze and tests have already passed for this source revision.')
 args = parser.parse_args()
 address = urlsplit(args.server_url)
@@ -86,7 +86,15 @@ checksum_file.write_text(f'{checksum}  {output.name}\n')
 if args.publish_download:
     downloads = root / 'web/public/downloads'
     downloads.mkdir(parents=True, exist_ok=True)
-    for path in (output, checksum_file):
-        shutil.copy2(path, downloads / path.name)
+    # Flutter APKs exceed the static asset host's 25 MiB limit.
+    (downloads / output.name).unlink(missing_ok=True)
+    shutil.copy2(checksum_file, downloads / checksum_file.name)
+    (downloads / 'index.html').write_text(
+        '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>大肥鱼 Android</title><h1>大肥鱼 · Flutter Android</h1>'
+        f'<p><a href="/api/downloads/{output.name}">下载 Android APK · 0.2.0</a></p>'
+        f'<p><a href="/api/downloads/{checksum_file.name}">SHA-256 校验文件</a></p></html>')
 print(f'APK: {output}')
 print(f'SHA-256: {checksum}')
+print(f'Download path: /api/downloads/{output.name}')
