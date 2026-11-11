@@ -41,7 +41,7 @@ jobs:
         run: |
           git clone --depth 1 --branch 3.41.9 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
-      - run: sdkmanager 'platforms;android-35' 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358'
+      - run: sdkmanager 'platforms;android-35' 'platforms;android-36' 'build-tools;35.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
       - run: flutter pub get
         working-directory: mobile
       - run: flutter analyze

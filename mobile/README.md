@@ -14,7 +14,7 @@
 
 ## 构建
 
-使用 Flutter **3.41.9 / Dart 3.11.5**，完整 JDK 17 或 21，以及 Android SDK（platform 35/36、build-tools 35.0.0、NDK 28.2.13676358），接受 Android SDK 许可。固定依赖见 `pubspec.lock`。
+使用 Flutter **3.41.9 / Dart 3.11.5**，完整 JDK 17 或 21，以及 Android SDK（platform 35/36、build-tools 35.0.0、NDK 28.2.13676358、CMake 3.22.1），接受 Android SDK 许可。固定依赖见 `pubspec.lock`。
 
 ```bash
 # 仓库根目录；先配置 PATH、JAVA_HOME、ANDROID_HOME
